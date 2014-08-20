@@ -22,31 +22,6 @@ $(document).ready(function() {
     {
 		var q = this;
 
-		this.mainTabs = ko.observableArray([
-			new Editor.Tab('general','General'),
-			new Editor.Tab('statement','Statement'),
-			new Editor.Tab('variables','Variables'),
-			new Editor.Tab('functions','Functions & Rulesets'),
-			new Editor.Tab(
-				'parts',
-				ko.computed(function() {
-					return 'Parts ('+q.parts().length+')';
-				})
-			),
-			new Editor.Tab('advice','Advice'),
-			new Editor.Tab(
-                'resources',
-                ko.computed(function() {
-                    return 'Resources ('+q.resources().length+')';
-                })
-            ),
-			new Editor.Tab('exams','Exams using this question')
-		]);
-        if(Editor.editable)
-            this.mainTabs.push(new Editor.Tab('access','Access'));
-
-		this.currentTab = ko.observable(this.mainTabs()[0]);
-
         this.starred = ko.observable(Editor.starred);
         this.toggleStar = function() {
             q.starred(!q.starred());
@@ -366,6 +341,32 @@ $(document).ready(function() {
                 q.access_rights.push(new UserAccess(q,data));
             };
         }
+
+		this.mainTabs = ko.observableArray([
+			new Editor.Tab('general','General'),
+			new Editor.Tab('statement','Statement'),
+			new Editor.Tab('variables','Variables'),
+			new Editor.Tab('functions','Functions & Rulesets'),
+			new Editor.Tab(
+				'parts',
+				ko.computed(function() {
+					return 'Parts ('+q.parts().length+')';
+				})
+			),
+			new Editor.Tab('advice','Advice'),
+			new Editor.Tab(
+                'resources',
+                ko.computed(function() {
+                    return 'Resources ('+q.resources().length+')';
+                })
+            ),
+			new Editor.Tab('exams','Exams using this question')
+		]);
+        if(Editor.editable)
+            this.mainTabs.push(new Editor.Tab('access','Access'));
+
+		this.currentTab = ko.observable(this.mainTabs()[0]);
+
     }
     Question.prototype = {
 		deleteQuestion: function(q,e) {
@@ -768,7 +769,7 @@ $(document).ready(function() {
 				}
 			},
 			read: function() {
-				return q.editVariableGroup()==vg;
+				return q.editVariableGroup && q.editVariableGroup()==vg;
 			}
 		},this);
 		this.endEdit = function() {
