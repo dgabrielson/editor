@@ -863,6 +863,69 @@ $(document).ready(function() {
         }
     }
 
+	ko.components.register('property',{
+		viewModel: function(params) {
+			this.label = params.label;
+			this.helpURL = params.helpURL;
+			this.type = params.type || 'text';
+			this.min = params.min;
+			this.max = params.max;
+			this.monospace = params.monospace || false;
+			this.value = params.value;
+		},
+		template: {element: 'component-property'}
+	});
+
+	ko.components.register('numberproperty',{
+		viewModel: function(params) {
+			this.label = params.label;
+			this.helpURL = params.helpURL;
+			this.min = params.min;
+			this.max = params.max;
+			this.monospace = params.monospace || false;
+			this.value = params.value;
+		},
+		template: {element: 'component-numberproperty'}
+	});
+
+	ko.components.register('percentproperty',{
+		viewModel: function(params) {
+			this.label = params.label;
+			this.helpURL = params.helpURL;
+			this.value = params.value;
+		},
+		template: {element: 'component-percentproperty'}
+	});
+
+	ko.components.register('selectproperty',{
+		viewModel: function(params) {
+			this.label = params.label;
+			this.helpURL = params.helpURL;
+			this.value = params.value;
+			this.options = params.options;
+			this.optionsText = params.optionsText == undefined ? params.options : params.optionsText;
+		},
+		template: {element: 'component-selectproperty'}
+	});
+
+	ko.components.register('booleanproperty',{
+		viewModel: function(params) {
+			this.label = params.label;
+			this.helpURL = params.helpURL;
+			this.value = params.value;
+		},
+		template: {element: 'component-booleanproperty'}
+	});
+
+	ko.components.register('listbox',{
+		viewModel: function(params) {
+			this.label = params.label;
+			this.helpURL = params.helpURL;
+			this.value = params.value;
+		},
+		template: {element: 'component-listbox'}
+	});
+
 	var Resource = Editor.Resource = function(data) {
 		this.progress = ko.observable(0);
 		this.url = ko.observable('');

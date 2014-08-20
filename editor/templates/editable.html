@@ -4,6 +4,112 @@
 		<a tabindex="2" class="helplink" data-bind="visible: $data.url, attr: {href: $data.url, title: $data.topic ? 'Help on '+$data.topic : 'Help'}, css: {big: $data.big, small: !$data.big}, text: $data.big ? 'Help' : '?'" target="numbasquickhelp">?</a>
 	</script>
 
+	<template id="component-listbox">
+		<div class="control-group">
+			<label>
+				<span class="control-label">
+					<span data-bind="html: label"></span>
+					<span data-bind="template: {name: 'helplink', data: {url: helpURL}}"></span>
+				</span>
+				<div class="controls" data-bind="listbox: value"></div>
+			</label>
+		</div>
+	</template>
+
+	<template id="component-property">
+		<div class="control-group">
+			<label>
+				<span class="control-label">
+					<span data-bind="html: label"></span>
+					<span data-bind="template: {name: 'helplink', data: {url: helpURL}}"></span>
+				</span>
+				<div class="controls">
+					<input data-bind="
+					textInput: value,
+					attr: {
+					type: type, 
+					min: min, 
+					max: max
+					}, 
+					css: {monospace: monospace},
+					autosize: {max: 500, min: 30, padding: 10, value: value}
+					"/>
+				</div>
+			</label>
+		</div>
+	</template>
+
+    <template id="component-numberproperty">
+		<div class="control-group">
+			<label>
+				<span class="control-label">
+					<span data-bind="html: label"></span>
+					<span data-bind="template: {name: 'helplink', data: {url: helpURL}}"></span>
+				</span>
+				<div class="controls">
+					<input type="number" data-bind="
+						textInput: value,
+						attr: {
+							min: min,
+							max: max
+						}, 
+						css: {monospace: monospace},
+						autosize: {max: 500, min: 30, padding: 25, value: value}
+					"/>
+				</div>
+			</label>
+		</div>
+	</template>
+
+	<template id="component-percentproperty">
+		<div class="control-group">
+			<label>
+				<span class="control-label">
+					<span data-bind="html: label"></span>
+					<span data-bind="template: {name: 'helplink', data: {url: helpURL}}"></span>
+				</span>
+				<div class="controls">
+					<input 
+						data-bind="textInput: value"
+						type="range"
+						step="5"
+						min="0"
+						max="100"
+						/>
+					<span class="percentproperty value" data-bind="text: ko.unwrap(value)+'%'"></span>
+				</div>
+			</label>
+		</div>
+	</template>
+
+	<template id="component-selectproperty">
+		<div class="control-group">
+			<label>
+				<span class="control-label">
+					<span data-bind="html: label"></span>
+					<span data-bind="template: {name: 'helplink', data: {url: helpURL}}"></span>
+				</span>
+				<div class="controls">
+					<select data-bind="options: options, value: value, optionsText: optionsText"></select>
+				</div>
+			</label>
+		</div>
+	</template>
+
+	<template id="component-booleanproperty">
+		<div class="control-group">
+			<label>
+				<span class="control-label">
+					<span data-bind="html: label"></span>
+					<span data-bind="template: {name: 'helplink', data: {url: helpURL}}"></span>
+				</span>
+				<div class="controls">
+					<input data-bind="checked: value" type="checkbox"/>
+				</div>
+			</label>
+		</div>
+	</template>
+
     <script type="text/html" id="property">
 		<label>
 			<span class="control-label">

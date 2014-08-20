@@ -9,7 +9,7 @@
 			<div class="row-fluid section">
 				<label>
 					<h4>Question Name <span data-bind="template: {name: 'helplink', data: {topic: 'question name', url: 'http://numbas-editor.readthedocs.org/en/latest/question-reference.html#term-question-name'}}"></span></h4>
-					<input class="input-block-level" id="question-name" data-bind="value: name, valueUpdate: 'afterkeydown'" type="text"/>
+					<input class="input-block-level" id="question-name" data-bind="textInput: name" type="text"/>
 				</label>
 			</div>
 			<div class="row-fluid section">
@@ -142,10 +142,13 @@
 							</label>
 						</div>
 						<div>
-							<div class="control-group" data-bind="template: {
-								name: 'selectproperty',
-								data: {label:'Data type',property: templateType, options: templateTypes, optionsText: 'name', helpURL: 'http://numbas-editor.readthedocs.org/en/latest/question-reference.html#term-data-type'}
-							}"></div>
+							<selectproperty params="
+								label: 'Data type',
+								property: templateType, 
+								options: templateTypes, 
+								optionsText: 'name', 
+								helpURL: 'http://numbas-editor.readthedocs.org/en/latest/question-reference.html#term-data-type'
+							"></selectproperty>
 						</div>
 						<div class="control-group">
 							<label class="control-label">
@@ -390,24 +393,30 @@
 							<!-- ko if: type().name=='gapfill' -->
 							<section class="tab-pane" data-bind="css: {active: ko.utils.unwrapObservable(currentTab().id)=='marking'}">
 								<form class="form-horizontal">
-									<div class="control-group" data-bind="visible: !parent, template: {
-										name: 'property',
-										data: {label:'Penalty for revealing steps',property:stepsPenalty,min:0, helpURL: 'http://numbas-editor.readthedocs.org/en/latest/question-parts.html#term-penalty-for-revealing-steps'}
-									}"></div>
+									<property params="
+												label: 'Penalty for revealing steps',
+												value: stepsPenalty,
+												min: 0,
+												helpUrl: 'http://numbas-editor.readthedocs.org/en/latest/question-parts.html#term-penalty-for-revealing-steps'
+									"></property>
 								</form>
 							</section>
 							<!-- /ko -->
 							<!-- ko if: type().name=='jme' -->
 							<section class="tab-pane" data-bind="css: {active: ko.utils.unwrapObservable(currentTab().id)=='marking'}">
 								<form class="form-horizontal">
-									<div class="control-group" data-bind="template: {
-										name: 'property',
-										data: {label:'Marks',property:marks,min:0, helpURL: 'http://numbas-editor.readthedocs.org/en/latest/question-parts.html#term-marks'}
-									}"></div>
-									<div class="control-group" data-bind="visible: !parent, template: {
-										name: 'property',
-										data: {label:'Penalty for revealing steps',property:stepsPenalty,min:0, helpURL: 'http://numbas-editor.readthedocs.org/en/latest/question-parts.html#term-penalty-for-revealing-steps'}
-									}"></div>
+									<property params="
+										label:'Marks',
+										value: marks,
+										min:0, 
+										helpURL: 'http://numbas-editor.readthedocs.org/en/latest/question-parts.html#term-marks'
+									"></property>
+									<property data-bind="visible: !parent" params="
+										label:'Penalty for revealing steps',
+										value: stepsPenalty,
+										min:0, 
+										helpURL: 'http://numbas-editor.readthedocs.org/en/latest/question-parts.html#term-penalty-for-revealing-steps'
+									"></property>
 									<div class="control-group">
 										<label>
 											<span class="control-label">Correct answer <span data-bind="template: {name: 'helplink', data: {url: 'http://numbas-editor.readthedocs.org/en/latest/question-parts.html#term-correct-answer'}}"></span></span>
@@ -417,63 +426,80 @@
 											</div>
 										</label>
 									</div>
-									<div class="control-group" data-bind="template: {
-										name: 'booleanproperty',
-										data: {label:'Show correct answer on reveal?',property:showCorrectAnswer,min:0, helpURL: 'http://numbas-editor.readthedocs.org/en/latest/question-parts.html#term-show-correct-answer-on-reveal'}
-									}"></div>
-									<div class="control-group" data-bind="template: {
-										name: 'booleanproperty',
-										data: {label:'Show preview of student\'s answer?', property:jme.showPreview, helpURL: 'http://numbas-editor.readthedocs.org/en/latest/question-parts.html#term-show-preview-of-student-s-answer'}
-									}"></div>
-									<div class="control-group" data-bind="template: {
-										name: 'property',
-										data: {label:'Answer simplification rules',property:jme.answerSimplification, monospace: true, helpURL: 'http://numbas-editor.readthedocs.org/en/latest/question-parts.html#term-answer-simplification-rules'}
-									}"></div>
+									<booleanproperty params="
+										label: 'Show correct answer on reveal?',
+										value: showCorrectAnswer,
+										min:0, 
+										helpURL: 'http://numbas-editor.readthedocs.org/en/latest/question-parts.html#term-show-correct-answer-on-reveal'
+									"></booleanproperty>
+									<booleanproperty params="
+										label: 'Show preview of student\'s answer?', 
+										value: jme.showPreview, 
+										helpURL: 'http://numbas-editor.readthedocs.org/en/latest/question-parts.html#term-show-preview-of-student-s-answer'
+									"></booleanproperty>
+									<property params="
+										label: 'Answer simplification rules',
+										value: jme.answerSimplification, 
+										monospace: true, 
+										helpURL: 'http://numbas-editor.readthedocs.org/en/latest/question-parts.html#term-answer-simplification-rules'
+									"></property>
 								</form>
 							</section>
 							<section class="tab-pane" data-bind="css: {active: ko.utils.unwrapObservable(currentTab().id)=='restrictions'}">
 								<form class="form-horizontal">
 									<h4>Checking accuracy</h4>
-									<div class="control-group">
-										<label>
-											<span class="control-label">Checking type <span data-bind="template: {name: 'helplink', data: {url: 'http://numbas-editor.readthedocs.org/en/latest/question-parts.html#term-checking-type'}}"></span></span>
-											<div class="controls">
-												<select data-bind="options: jme.checkingTypes, value: jme.checkingType, optionsText:'niceName'"></select>
-											</div>
-										</label>
-									</div>
-									<div class="control-group" data-bind="template: {
-										name: 'property',
-										data: {label:'Checking accuracy',property:jme.checkingType().accuracy,min:0, helpURL: 'http://numbas-editor.readthedocs.org/en/latest/question-parts.html#term-checking-accuracy'}
-									}"></div>
-									<div class="control-group" data-bind="template: {
-										name: 'property',
-										data: {label:'Points to check',property:jme.vset.points,min:0, helpURL: 'http://numbas-editor.readthedocs.org/en/latest/question-parts.html#term-points-to-check'}
-									}"></div>
-									<div class="control-group" data-bind="template: {
-										name: 'property',
-										data: {label:'Maximum no. of failures',property:jme.failureRate,min:0, max:jme.vset.points, helpURL: 'http://numbas-editor.readthedocs.org/en/latest/question-parts.html#term-maximum-no-of-failures'}
-									}"></div>
-									<div class="control-group" data-bind="template: {
-										name: 'property',
-										data: {label:'Checking range start',property:jme.vset.start,max:jme.vset.end, helpURL: 'http://numbas-editor.readthedocs.org/en/latest/question-parts.html#term-checking-range-start'}
-									}"></div>
-									<div class="control-group" data-bind="template: {
-										name: 'property',
-										data: {label:'Checking range end',property:jme.vset.end,min:jme.vset.start, helpURL: 'http://numbas-editor.readthedocs.org/en/latest/question-parts.html#term-checking-range-end'}
-									}"></div>
+									<selectproperty params="
+										label: 'Checking type',
+										helpURL: 'http://numbas-editor.readthedocs.org/en/latest/question-parts.html#term-checking-type',
+										options: jme.checkingTypes,
+										value: jme.checkingType,
+										optionsText: 'niceName'
+									"></selectproperty>
+									<property params="
+										label: 'Checking accuracy',
+										value: jme.checkingType().accuracy,
+										min: 0,
+										helpURL: 'http://numbas-editor.readthedocs.org/en/latest/question-parts.html#term-checking-accuracy'
+									"></property>
+									<property params="
+										label: 'Points to check',
+										value: jme.vset.points,
+										min:0, 
+										helpURL: 'http://numbas-editor.readthedocs.org/en/latest/question-parts.html#term-points-to-check'
+									"></property>
+									<property params="
+										label: 'Maximum no. of failures',
+										value: jme.failureRate,
+										min:0, 
+										max:jme.vset.points, 
+										helpURL: 'http://numbas-editor.readthedocs.org/en/latest/question-parts.html#term-maximum-no-of-failures'
+									"></property>
+									<property params="
+										label: 'Checking range start',
+										value :jme.vset.start,
+										max: jme.vset.end, 
+										helpURL: 'http://numbas-editor.readthedocs.org/en/latest/question-parts.html#term-checking-range-start'
+									"></property>
+									<property params="
+										label: 'Checking range end',
+										value: jme.vset.end,
+										min:jme.vset.start, 
+										helpURL: 'http://numbas-editor.readthedocs.org/en/latest/question-parts.html#term-checking-range-end'
+									"></property>
 								</form>
 								<h4>Length restriction</h4>
 								<form class="form-horizontal">
-									<div class="control-group" data-bind="template: {
-										name: 'property',
-										data: {label:'Maximum length',property:jme.maxlength.length,min:0, helpURL: 'http://numbas-editor.readthedocs.org/en/latest/question-parts.html#term-maximum-length-restriction'}
-									}"></div>
+									<property params="
+										label: 'Maximum length',
+										value: jme.maxlength.length,
+										min:0, 
+										helpURL: 'http://numbas-editor.readthedocs.org/en/latest/question-parts.html#term-maximum-length-restriction'
+									"></property>
 									<div data-bind="fadeVisible: jme.maxlength.length()>0">
-										<div class="control-group" data-bind="template: {
-											name:'percentproperty',
-											data: {label:'Partial credit for long answer',property:jme.maxlength.partialCredit}
-										}"></div>
+										<percentproperty params="
+											label: 'Partial credit for long answer',
+											value: jme.maxlength.partialCredit
+										"></percentproperty>
 										<div class="control-group">
 											<label>
 												<span class="control-label">Warning message</span>
@@ -483,15 +509,17 @@
 									</div>
 								</form>
 								<form class="form-horizontal">
-									<div class="control-group" data-bind="template: {
-										name: 'property',
-										data: {label:'Minimum length',property:jme.minlength.length,min:0, helpURL: 'http://numbas-editor.readthedocs.org/en/latest/question-parts.html#term-minimum-length-restriction'}
-									}"></div>
+									<property params="
+										label: 'Minimum length',
+										value: jme.minlength.length,
+										min:0, 
+										helpURL: 'http://numbas-editor.readthedocs.org/en/latest/question-parts.html#term-minimum-length-restriction'
+									"></property>
 									<div data-bind="fadeVisible: jme.minlength.length()>0">
-										<div class="control-group" data-bind="template: {
-											name:'percentproperty',
-											data: {label:'Partial credit for short answer',property:jme.minlength.partialCredit}
-										}"></div>
+										<percentproperty params="
+											label: 'Partial credit for short answer',
+											value:jme.minlength.partialCredit
+										"></percentproperty>
 										<div class="control-group">
 											<label>
 												<span class="control-label">Warning message</span>
@@ -502,21 +530,20 @@
 								</form>
 								<h4>String restriction</h4>
 								<form class="form-horizontal">
-									<div class="control-group">
-										<label>
-											<span class="control-label">Required strings: <span data-bind="template: {name: 'helplink', data: {url: 'http://numbas-editor.readthedocs.org/en/latest/question-parts.html#term-required-strings'}}"></span></span>
-											<div class="controls" data-bind="listbox:jme.musthave.strings"></div>
-										</label>
-									</div>
+									<listbox params="
+										label: 'Required strings',
+										helpURL: 'http://numbas-editor.readthedocs.org/en/latest/question-parts.html#term-required-strings',
+										value: jme.musthave.strings
+									"></listbox>
 									<div data-bind="fadeVisible: jme.musthave.strings().length>0">
-										<div class="control-group" data-bind="template: {
-											name:'percentproperty',
-											data: {label:'Partial credit for not using all required strings:',property:jme.musthave.partialCredit}
-										}"></div>
-										<div class="control-group" data-bind="template: {
-											name: 'booleanproperty',
-											data: {label:'Show required strings in warning?', property:jme.musthave.showStrings}
-										}"></div>
+										<percentproperty params="
+											label: 'Partial credit for not using all required strings',
+											value: jme.musthave.partialCredit
+										"></percentproperty>
+										<booleanproperty params="
+											label: 'Show required strings in warning?', 
+											value: jme.musthave.showStrings
+										"></booleanproperty>
 										<div class="control-group">
 											<label>
 												<span class="control-label">Warning message</span>
@@ -527,21 +554,20 @@
 								</form>
 
 								<form class="form-horizontal">
-									<div class="control-group">
-										<label>
-											<span class="control-label">Forbidden strings: <span data-bind="template: {name: 'helplink', data: {url: 'http://numbas-editor.readthedocs.org/en/latest/question-parts.html#term-forbidden-strings'}}"></span></span>
-											<div class="controls" data-bind="listbox:jme.notallowed.strings"></div>
-										</label>
-									</div>
+									<listbox params="
+										label: 'Forbidden strings',
+										helpURL: 'http://numbas-editor.readthedocs.org/en/latest/question-parts.html#term-forbidden-strings',
+										value: jme.notallowed.strings
+									"></listbox>
 									<div data-bind="fadeVisible: jme.notallowed.strings().length>0">
-										<div class="control-group" data-bind="template: {
-											name:'percentproperty',
-											data: {label:'Partial credit for not using all required strings:',property:jme.notallowed.partialCredit}
-										}"></div>
-										<div class="control-group" data-bind="template: {
-											name: 'booleanproperty',
-											data: {label:'Show required strings in warning?', property:jme.notallowed.showStrings}
-										}"></div>
+										<percentproperty params="
+											label: 'Partial credit for using any forbidden strings',
+											value: jme.notallowed.partialCredit
+										"></percentproperty>
+										<booleanproperty params="
+											label: 'Show required strings in warning?', 
+											value: jme.notallowed.showStrings
+										"></booleanproperty>
 										<div class="control-group">
 											<label>
 												<span class="control-label">Warning message</span>
@@ -552,74 +578,79 @@
 								</form>
 
 								<form class="form-horizontal">
-                                    <div class="control-group" data-bind="template: {
-                                        name: 'booleanproperty',
-                                        data: {label: 'Warn if student uses an unexpected variable name?', property:jme.checkVariableNames, helpURL: 'http://numbas-editor.readthedocs.org/en/latest/question-parts.html#term-warn-if-student-uses-an-unexpected-variable-name'}
-                                    }"></div>
-									<div class="control-group" data-bind="fadeVisible:jme.checkVariableNames">
-										<label>
-											<span class="control-label">Expected variable names <span data-bind="template: {name: 'helplink', data: {url: 'http://numbas-editor.readthedocs.org/en/latest/question-parts.html#term-expected-variable-names'}}"></span></span>
-											<div class="controls" data-bind="listbox:jme.expectedVariableNames"></div>
-										</label>
-									</div>
+									<booleanproperty params="
+										label: 'Warn if student uses an unexpected variable name?', 
+										value: jme.checkVariableNames, 
+										helpURL: 'http://numbas-editor.readthedocs.org/en/latest/question-parts.html#term-warn-if-student-uses-an-unexpected-variable-name'
+									"></booleanproperty>
+									<listbox params="
+										label: 'Expected variable names',
+										helpURL: 'http://numbas-editor.readthedocs.org/en/latest/question-parts.html#term-expected-variable-names',
+										value: jme.expectedVariableNames
+									"></listbox>
 								</form>
 							</section>
 							<!-- /ko -->
 							<!-- ko if: type().name=='numberentry' -->
 							<section class="tab-pane" data-bind="css: {active: ko.utils.unwrapObservable(currentTab().id)=='marking'}">
 								<form class="form-horizontal">
-									<div class="control-group" data-bind="template: {
-										name: 'property',
-										data: {label:'Marks',property:marks,min:0, helpURL: 'http://numbas-editor.readthedocs.org/en/latest/question-parts.html#term-marks'}
-									}"></div>
-									<div class="control-group" data-bind="visible: !parent, template: {
-										name: 'property',
-										data: {label:'Penalty for revealing steps',property:stepsPenalty,min:0, helpURL: 'http://numbas-editor.readthedocs.org/en/latest/question-parts.html#term-penalty-for-revealing-steps'}
-									}"></div>
-									<div class="control-group" data-bind="template: {
-										name: 'property',
-										data: {label:'Minimum accepted value',property:numberentry.minValue, helpURL: 'http://numbas-editor.readthedocs.org/en/latest/question-parts.html#term-minimum-accepted-value'}
-									}"></div>
-									<div class="control-group" data-bind="template: {
-										name: 'property',
-										data: {label:'Maximum accepted value',property:numberentry.maxValue, helpURL: 'http://numbas-editor.readthedocs.org/en/latest/question-parts.html#term-maximum-accepted-value'}
-									}"></div>
-									<div class="control-group" data-bind="template: {
-										name: 'booleanproperty',
-										data: {label:'Must the answer be an integer?', property:numberentry.integerAnswer, helpURL: 'http://numbas-editor.readthedocs.org/en/latest/question-parts.html#term-must-the-answer-be-an-integer'}
-									}"></div>
-									<div class="control-group" data-bind="template: {
-										name: 'booleanproperty',
-										data: {label:'Show correct answer on reveal?',property:showCorrectAnswer,min:0, helpURL: 'http://numbas-editor.readthedocs.org/en/latest/question-parts.html#term-show-correct-answer-on-reveal'}
-									}"></div>
-									<div class="control-group" data-bind="fadeVisible: numberentry.integerAnswer,
-									template: {
-										name:'percentproperty',
-										data: {label:'Partial credit for non-integer answer',property:numberentry.integerPartialCredit}
-									}"></div>
-									<div class="control-group">
-										<label>
-											<span class="control-label">Precision restriction <span data-bind="template: {name: 'helplink', data: {url: 'http://numbas-editor.readthedocs.org/en/latest/question-parts.html#term-precision-restriction'}}"></span></span>
-											<div class="controls">
-												<select data-bind="options: numberentry.precisionTypes, value: numberentry.precisionType, optionsText: 'niceName'"></select>
-											</div>
-										</label>
-									</div>
-									<div class="control-group" data-bind="fadeVisible: numberentry.precisionType().name!='none',
-									template: {
-										name:'property',
-										data: {label:numberentry.precisionWord,property:numberentry.precision}
-									}"></div>
-									<div class="control-group" data-bind="fadeVisible: numberentry.precisionType().name!='none',
-									template: {
-										name:'booleanproperty',
-										data: {label:'Require trailing zeroes?',property:numberentry.strictPrecision, helpURL: 'http://numbas-editor.readthedocs.org/en/latest/question-parts.html#term-require-trailing-zeroes'}
-									}"></div>
-									<div class="control-group" data-bind="fadeVisible: numberentry.precisionType().name!='none',
-									template: {
-										name:'percentproperty',
-										data: {label:'Partial credit for wrong precision',property:numberentry.precisionPartialCredit}
-									}"></div>
+									<property params="
+										label: 'Marks',
+										value: marks,
+										min:0, 
+										helpURL: 'http://numbas-editor.readthedocs.org/en/latest/question-parts.html#term-marks'
+									"></property>
+									<property params="
+										label: 'Penalty for revealing steps',
+										value: stepsPenalty, 
+										min:0, 
+										helpURL: 'http://numbas-editor.readthedocs.org/en/latest/question-parts.html#term-penalty-for-revealing-steps'
+									"></property>
+									<property params="
+										label: 'Minimum accepted value',
+										value: numberentry.minValue, 
+										helpURL: 'http://numbas-editor.readthedocs.org/en/latest/question-parts.html#term-minimum-accepted-value'
+									"></property>
+									<property params="
+										label: 'Maximum accepted value',
+										value: numberentry.maxValue, 
+										helpURL: 'http://numbas-editor.readthedocs.org/en/latest/question-parts.html#term-maximum-accepted-value'
+									"></property>
+									<booleanproperty params="
+										label: 'Must the answer be an integer?', 
+										value: numberentry.integerAnswer, 
+										helpURL: 'http://numbas-editor.readthedocs.org/en/latest/question-parts.html#term-must-the-answer-be-an-integer'
+									"></booleanproperty>
+									<booleanproperty params="
+										label:'Show correct answer on reveal?',
+										value: showCorrectAnswer,
+										min:0, 
+										helpURL: 'http://numbas-editor.readthedocs.org/en/latest/question-parts.html#term-show-correct-answer-on-reveal'
+									"></booleanproperty>
+									<percentproperty data-bind="fadeVisible: numberentry.integerAnswer" params="
+										label: 'Partial credit for non-integer answer',
+										value: numberentry.integerPartialCredit
+									"></percentproperty>
+									<selectproperty params="
+										label: 'Precision restriction',
+										helpURL: 'http://numbas-editor.readthedocs.org/en/latest/question-parts.html#term-precision-restriction',
+										options: numberentry.precisionTypes, 
+										value: numberentry.precisionType, 
+										optionsText: 'niceName'
+									"></selectproperty>
+									<property data-bind="fadeVisible: numberentry.precisionType().name!='none'" params="
+										label: numberentry.precisionWord,
+										value: numberentry.precision
+									"></property>
+									<booleanproperty data-bind="fadeVisible: numberentry.precisionType().name!='none'" params="
+										label: 'Require trailing zeroes?',
+										value: numberentry.strictPrecision, 
+										helpURL: 'http://numbas-editor.readthedocs.org/en/latest/question-parts.html#term-require-trailing-zeroes'
+									"></booleanproperty>
+									<percentproperty data-bind="fadeVisible: numberentry.precisionType().name!='none'" params="
+										label: 'Partial credit for wrong precision',
+										value: numberentry.precisionPartialCredit
+									"></percentproperty>
 									<div class="control-group" data-bind="fadeVisible: numberentry.precisionType().name!='none'">
 										<label>
 											<span class="control-label">Message if wrong precision</span>
@@ -632,36 +663,44 @@
 							<!-- ko if: type().name=='patternmatch' -->
 							<section class="tab-pane" data-bind="css: {active: ko.utils.unwrapObservable(currentTab().id)=='marking'}">
 								<form class="form-horizontal">
-									<div class="control-group" data-bind="template: {
-										name: 'property',
-										data: {label:'Marks',property:marks,min:0, helpURL: 'http://numbas-editor.readthedocs.org/en/latest/question-parts.html#term-marks'}
-									}"></div>
-									<div class="control-group" data-bind="visible: !parent, template: {
-										name: 'property',
-										data: {label:'Penalty for revealing steps',property:stepsPenalty,min:0, helpURL: 'http://numbas-editor.readthedocs.org/en/latest/question-parts.html#term-penalty-for-revealing-steps'}
-									}"></div>
-									<div class="control-group" data-bind="template: {
-										name: 'property',
-										data: {label:'Answer pattern',property:patternmatch.answer, monospace: true, helpURL: 'http://numbas-editor.readthedocs.org/en/latest/question-parts.html#term-answer-pattern'}
-									}"></div>
-									<div class="control-group" data-bind="template: {
-										name: 'booleanproperty',
-										data: {label:'Show correct answer on reveal?',property:showCorrectAnswer,min:0, helpURL: 'http://numbas-editor.readthedocs.org/en/latest/question-parts.html#term-show-correct-answer-on-reveal'}
-									}"></div>
-									<div class="control-group" data-bind="fadeVisible: showCorrectAnswer, template: {
-										name: 'property',
-										data: {label:'Display answer',property:patternmatch.displayAnswer, helpURL: 'http://numbas-editor.readthedocs.org/en/latest/question-parts.html#term-display-answer'}
-									}"></div>
-									<div class="control-group" data-bind="template: {
-										name: 'booleanproperty',
-										data: {label:'Must the answer be in the correct case?', property:patternmatch.caseSensitive, helpURL: 'http://numbas-editor.readthedocs.org/en/latest/question-parts.html#term-must-the-answer-be-in-the-correct-case'}
-									}"></div>
-									<div class="control-group" data-bind="
-									fadeVisible:patternmatch.caseSensitive,
-									template: {
-										name:'percentproperty',
-										data: {label:'Partial credit for answer not matching case',property:patternmatch.partialCredit}
-									}"></div>
+									<property params="
+										label: 'Marks',
+										value: marks,
+										min: 0, 
+										helpURL: 'http://numbas-editor.readthedocs.org/en/latest/question-parts.html#term-marks'
+									"></property>
+									<property data-bind="visible: !parent" params="
+										label: 'Penalty for revealing steps',
+										value: stepsPenalty,
+										min: 0, 
+										helpURL: 'http://numbas-editor.readthedocs.org/en/latest/question-parts.html#term-penalty-for-revealing-steps'
+									"></property>
+									<property params="
+										label: 'Answer pattern',
+										value: patternmatch.answer, 
+										monospace: true, 
+										helpURL: 'http://numbas-editor.readthedocs.org/en/latest/question-parts.html#term-answer-pattern'
+									"></property>
+									<booleanproperty params="
+										label: 'Show correct answer on reveal?',
+										value: showCorrectAnswer,
+										min: 0, 
+										helpURL: 'http://numbas-editor.readthedocs.org/en/latest/question-parts.html#term-show-correct-answer-on-reveal'
+									"></booleanproperty>
+									<property data-bind="fadeVisible: showCorrectAnswer" params="
+										label: 'Display answer',
+										value: patternmatch.displayAnswer, 
+										helpURL: 'http://numbas-editor.readthedocs.org/en/latest/question-parts.html#term-display-answer'
+									"></property>
+									<booleanproperty params="
+										label: 'Must the answer be in the correct case?', 
+										value: patternmatch.caseSensitive, 
+										helpURL: 'http://numbas-editor.readthedocs.org/en/latest/question-parts.html#term-must-the-answer-be-in-the-correct-case'
+									"></booleanproperty>
+									<percentproperty data-bind="fadeVisible:patternmatch.caseSensitive" params="
+										label: 'Partial credit for answer not matching case',
+										value: patternmatch.partialCredit
+									"></percentproperty>
 								</form>
 							</section>
 							<!-- /ko -->
