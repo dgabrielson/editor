@@ -1,14 +1,12 @@
 {% extends "question/edit.html" %}
 {% load user_link %}
 
-
 {% block editor %}
-	{% include "editable.html" %}
 	<div class="tab-content">
 		<section class="tab-pane" data-bind="css: {active: ko.utils.unwrapObservable($root.currentTab().id)=='general'}">
 			<div class="row-fluid section">
 				<label>
-					<h4>Question Name <span data-bind="template: {name: 'helplink', data: {topic: 'question name', url: 'http://numbas-editor.readthedocs.org/en/latest/question-reference.html#term-question-name'}}"></span></h4>
+					<h4>Question Name <helplink params="topic: 'question name', url: 'http://numbas-editor.readthedocs.org/en/latest/question-reference.html#term-question-name'"></helplink></h4>
 					<input class="input-block-level" id="question-name" data-bind="textInput: name" type="text"/>
 				</label>
 			</div>
@@ -28,15 +26,15 @@
 			</div>
 			<div class="row-fluid section">
 				<div class="span8">
-					<label for="description"><h4>Description <span data-bind="template: {name: 'helplink', data: {topic: 'description', url: 'http://numbas-editor.readthedocs.org/en/latest/question-reference.html#term-description'}}"></span></h4></label>
-					<div id="description" data-bind="writemaths: description"></div>
+					<label for="description"><h4>Description <helplink params="topic: 'description', url: 'http://numbas-editor.readthedocs.org/en/latest/question-reference.html#term-description'"></helplink></h4></label>
+					<writemaths id="description" params="value: description"></writemaths>
 					<div data-bind="if: !description()" class="nothing-here">The author has not written a description.</div>
-					<label for="authors-notes"><h4>Author's Notes <span data-bind="template: {name: 'helplink', data: {topic: 'author\'s notes', url: 'http://numbas-editor.readthedocs.org/en/latest/question-reference.html#term-author-s-notes'}}"></span></h4></label>
-					<div id="authors-notes" data-bind="writemaths: notes"></div>
+					<label for="authors-notes"><h4>Author's Notes <helplink params="topic: 'author\'s notes', url: 'http://numbas-editor.readthedocs.org/en/latest/question-reference.html#term-author-s-notes'"></helplink></h4></label>
+					<writemaths id="authors-notes" params="value: notes"></writemaths>
 					<div data-bind="if:!notes()" class="nothing-here">The author has not made any notes.</div>
 				</div>
 				<div class="span4">
-					<h4>Extensions <span data-bind="template: {name: 'helplink', data: {topic: 'extensions', url: 'http://numbas-editor.readthedocs.org/en/latest/question-reference.html#term-extensions'}}"></span></h4>
+					<h4>Extensions <helplink params="topic: 'extensions', url: 'http://numbas-editor.readthedocs.org/en/latest/question-reference.html#term-extensions'"></helplink></h4>
 					<ul class="extensions" data-bind="foreach: extensions">
 						<li class="extension">
 							<label>
@@ -46,7 +44,7 @@
 						</li>
 					</ul>
 					<div class="tags">
-						<h4>Tags <span data-bind="template: {name: 'helplink', data: {topic: 'tags', url: 'http://numbas-editor.readthedocs.org/en/latest/question-reference.html#term-tags'}}"></span></h4>
+						<h4>Tags <helplink params="topic: 'tags', url: 'http://numbas-editor.readthedocs.org/en/latest/question-reference.html#term-tags'"></helplink></h4>
 						<form data-bind="submit: function(form) {var input = $(form).find('input');$data.tags.push(input.val());input.val('').focus();}">
 							<input type="text"></input>
 						</form>
@@ -67,12 +65,12 @@
 			</div>
 		</section>
 		<section class="tab-pane" data-bind="css: {active: ko.utils.unwrapObservable($root.currentTab().id)=='statement'}">
-			<span data-bind="template: {name: 'helplink', data: {topic: 'the question statement', url: 'http://numbas-editor.readthedocs.org/en/latest/question-reference.html#statement', big: true}}"></span>
-			<div id="statement" data-bind="writemaths: statement, preambleCSS: $root.preamble.css"></div>
+			<helplink params="topic: 'the question statement', url: 'http://numbas-editor.readthedocs.org/en/latest/question-reference.html#statement', big: true"></helplink>
+			<writemaths params="value: statement, css: $root.preamble.css"></writemaths>
 			<div class="nothing-here" data-bind="if:!statement()">No statement.</div>
 		</section>
 		<section class="tab-pane" data-bind="css: {active: ko.utils.unwrapObservable($root.currentTab().id)=='variables'}">
-			<span data-bind="template: {name: 'helplink', data: {topic: 'variables', url: 'http://numbas-editor.readthedocs.org/en/latest/question-reference.html#variables', big: true}}"></span>
+			<helplink params="topic: 'variables', url: 'http://numbas-editor.readthedocs.org/en/latest/question-reference.html#variables', big: true"></helplink>
 			<div class="row-fluid">
 				<div class="span4">
 					<div>
@@ -133,10 +131,10 @@
 							<label>
 								<span class="control-label">
 									Name
-									<span data-bind="template: {name: 'helplink', data: {url: 'http://numbas-editor.readthedocs.org/en/latest/question-reference.html#term-name'}}"></span>
+									<helplink params="url: 'http://numbas-editor.readthedocs.org/en/latest/question-reference.html#term-name'"></helplink>
 								</span>
 								<div class="controls">
-									<input type="text" placeholder="Name" class="name" data-bind="value:name, valueUpdate: 'afterkeydown', autosize: name"/>
+									<input type="text" placeholder="Name" class="name" data-bind="textInput: name, autosize: name"/>
 									<span class="name-error" data-bind="text: nameError, visible: nameError"></span>
 								</div>
 							</label>
@@ -153,7 +151,7 @@
 						<div class="control-group">
 							<label class="control-label">
 								Value
-								<span data-bind="template: {name: 'helplink', data: {url: 'http://numbas-editor.readthedocs.org/en/latest/question-reference.html#term-value'}}"></span>
+								<helplink params="url: 'http://numbas-editor.readthedocs.org/en/latest/question-reference.html#term-value'"></helplink>
 							</label>
 
 							<div class="controls">
@@ -161,38 +159,38 @@
 									<textarea class="def" data-bind="valueUpdate: 'afterkeydown', codemirror: templateTypeValues.anything.definition, codemirrorMode: 'jme'"></textarea>
 								</div>
 								<div data-bind="visible: templateType().id=='number'">
-									<input type="text" data-bind="value: templateTypeValues.number.value, valueUpdate: 'afterkeydown', autosize: {max: 500, min: 30, padding: 30, value: templateTypeValues.number.value}"/> (a number)
+									<input type="text" data-bind="textInput: templateTypeValues.number.value, autosize: {max: 500, min: 30, padding: 30, value: templateTypeValues.number.value}"/> (a number)
 								</div>
 								<div data-bind="visible: templateType().id=='range'">
 									Numbers between 
-									<input type="text" data-bind="value: templateTypeValues.range.min, valueUpdate: 'afterkeydown', autosize: {max: 500, min: 30, padding: 10, value: templateTypeValues.range.min}"/>
+									<input type="text" data-bind="textInput: templateTypeValues.range.min, autosize: {max: 500, min: 30, padding: 10, value: templateTypeValues.range.min}"/>
 									and
-									<input type="text" data-bind="value: templateTypeValues.range.max, valueUpdate: 'afterkeydown', autosize: {max: 500, min: 30, padding: 10, value: templateTypeValues.range.max}"/>
+									<input type="text" data-bind="textInput: templateTypeValues.range.max, autosize: {max: 500, min: 30, padding: 10, value: templateTypeValues.range.max}"/>
 									(inclusive) with step size
-									<input type="text" data-bind="value: templateTypeValues.range.step, valueUpdate: 'afterkeydown', autosize: {max: 500, min: 30, padding: 10, value: templateTypeValues.range.step}"/>
+									<input type="text" data-bind="textInput: templateTypeValues.range.step, autosize: {max: 500, min: 30, padding: 10, value: templateTypeValues.range.step}"/>
 								</div>
 								<div data-bind="visible: templateType().id=='randrange'">
 									A random number between 
-									<input type="text" data-bind="value: templateTypeValues.randrange.min, valueUpdate: 'afterkeydown', autosize: {max: 500, min: 30, padding: 10, value: templateTypeValues.randrange.min}"/>
+									<input type="text" data-bind="textInput: templateTypeValues.randrange.min, autosize: {max: 500, min: 30, padding: 10, value: templateTypeValues.randrange.min}"/>
 									and
-									<input type="text" data-bind="value: templateTypeValues.randrange.max, valueUpdate: 'afterkeydown', autosize: {max: 500, min: 30, padding: 10, value: templateTypeValues.randrange.max}"/>
+									<input type="text" data-bind="textInput: templateTypeValues.randrange.max, autosize: {max: 500, min: 30, padding: 10, value: templateTypeValues.randrange.max}"/>
 									(inclusive) with step size
-									<input type="text" data-bind="value: templateTypeValues.randrange.step, valueUpdate: 'afterkeydown', autosize: {max: 500, min: 30, padding: 10, value: templateTypeValues.randrange.step}"/>
+									<input type="text" data-bind="textInput: templateTypeValues.randrange.step, autosize: {max: 500, min: 30, padding: 10, value: templateTypeValues.randrange.step}"/>
 								</div>
 								<div data-bind="visible: templateType().id=='string'">
-									<input type="text" data-bind="value: templateTypeValues.string.value, valueUpdate: 'afterkeydown', autosize: {max: 500, min: 30, padding: 10, value: templateTypeValues.string.value}"/> (text string)
+									<input type="text" data-bind="textInput: templateTypeValues.string.value, autosize: {max: 500, min: 30, padding: 10, value: templateTypeValues.string.value}"/> (text string)
 								</div>
 								<div data-bind="visible: templateType().id=='long string'">
-									<div data-bind="writemaths: templateTypeValues['long string'].value"></div>
+									<writemaths params="value: templateTypeValues['long string'].value"></writemaths>
 								</div>
 								<div data-bind="visible: templateType().id=='list of numbers', with: templateTypeValues['list of numbers']">
-									<input type="text" data-bind="value: commaValue, valueUpdate: 'afterkeydown', autosize: {max: 500, min: 30, padding: 10, value: commaValue}"/>
+									<input type="text" data-bind="textInput: commaValue, autosize: {max: 500, min: 30, padding: 10, value: commaValue}"/>
 									(comma-separated list of numbers)
 								</div>
 								<div data-bind="visible: templateType().id=='list of strings', with: templateTypeValues['list of strings']">
 									<ul class="no-bullets" data-bind="foreach: values.edit">
 										<li>
-										<input type="text" data-bind="value: value, valueUpdate: 'afterkeydown', event: {blur: onBlur}, autosize: {max: 500, min: 30, padding: 10, value: value}"/>
+										<input type="text" data-bind="textInput: value, event: {blur: onBlur}, autosize: {max: 500, min: 30, padding: 10, value: value}"/>
 										</li>
 									</ul>
 									(text strings)
@@ -203,9 +201,9 @@
 							<label>
 								<span class="control-label">
 									Description
-									<span data-bind="template: {name: 'helplink', data: {url: 'http://numbas-editor.readthedocs.org/en/latest/question-reference.html#term-12'}}"></span>
+									<helplink params="url: 'http://numbas-editor.readthedocs.org/en/latest/question-reference.html#term-12'"></helplink>
 								</span>
-								<div class="controls" data-bind="writemaths: description"></div>
+								<writemaths params="value: description"></writemaths>
 							</label>
 						</div>
 					</form>
@@ -226,7 +224,7 @@
 		</section>
 		<section class="tab-pane" data-bind="css: {active: ko.utils.unwrapObservable($root.currentTab().id)=='functions'}">
 			<div id="functions">
-				<h4>Functions <span data-bind="template: {name: 'helplink', data: {topic: 'functions', url: 'http://numbas-editor.readthedocs.org/en/latest/question-reference.html#functions-rulesets'}}"></span></h4>
+				<h4>Functions <helplink params="topic: 'functions', url: 'http://numbas-editor.readthedocs.org/en/latest/question-reference.html#functions-rulesets'"></helplink></h4>
 				<!-- ko foreach: {data: functions, afterAdd: Editor.afterAdd} -->
 				<div class="function row-fluid">
 					<div class="span1">
@@ -236,21 +234,21 @@
 						<div class="row-fluid">
 							<div class="span4">
 								<label>
-									Name <span data-bind="template: {name: 'helplink', data: {topic: 'function names', url: 'http://numbas-editor.readthedocs.org/en/latest/question-reference.html#term-name'}}"></span>
+									Name <helplink params="topic: 'function names', url: 'http://numbas-editor.readthedocs.org/en/latest/question-reference.html#term-name'"></helplink>
 									<div>
-										<input placeholder="Name" type="text" data-bind="value: name, valueUpdate: 'afterkeydown', autosize: {value: name, max: 220}">
+										<input placeholder="Name" type="text" data-bind="textInput: name, autosize: {value: name, max: 220}">
 									</div>
 								</label>
 							</div>
 							<div class="span4">
 								<label>
-									Language <span data-bind="template: {name: 'helplink', data: {topic: 'languages', url: 'http://numbas-editor.readthedocs.org/en/latest/question-reference.html#term-language'}}"></span>
+									Language <helplink params="topic: 'languages', url: 'http://numbas-editor.readthedocs.org/en/latest/question-reference.html#term-language'"></helplink>
 									<select data-bind="options: languages, value: language"></select>
 								</label>
 							</div>
 							<div class="span4">
 								<label>
-									Output type <span data-bind="template: {name: 'helplink', data: {topic: 'output data types', url: 'http://numbas-editor.readthedocs.org/en/latest/question-reference.html#term-output-type'}}"></span>
+									Output type <helplink params="topic: 'output data types', url: 'http://numbas-editor.readthedocs.org/en/latest/question-reference.html#term-output-type'"></helplink>
 									<select data-bind="options: types, value:type"></select>
 								</label>
 							</div>
@@ -270,7 +268,7 @@
 						<!-- ko foreach: {data: parameters, afterAdd: Editor.afterAdd} -->
 						<div class="row-fluid parameter">
 							<form class="form-inline">
-								<input class="name" type="text" placeholder="Name" data-bind="value: name, valueUpdate: 'afterkeydown'"/>
+								<input class="name" type="text" placeholder="Name" data-bind="textInput: name"/>
 								<select class="type" data-bind="options: $parent.types, value: type"></select>
 								<button type="button" class="delete" data-bind="click: remove" title="Remove this parameter"></button>
 							</form>
@@ -283,12 +281,12 @@
 				<button type="button" data-bind="click:addFunction, text: functions().length ? 'Add another function' : 'Add a function'"></button>
 			</div>
 			<div id="rulesets">
-				<h4>Rulesets <span data-bind="template: {name: 'helplink', data: {topic: 'rulesets', url: 'http://numbas-editor.readthedocs.org/en/latest/question-reference.html#rulesets'}}"></span></h4>
+				<h4>Rulesets <helplink params="topic: 'rulesets', url: 'http://numbas-editor.readthedocs.org/en/latest/question-reference.html#rulesets'"></helplink></h4>
 				<form class="form-horizontal">
 					<!-- ko foreach: {data: rulesets, afterAdd: Editor.afterAdd} -->
 						<div class="ruleset control-group">
 							<span class="control-label">
-								<input type="text" placeholder="Name" class="name control-label" data-bind="value:name, valueUpdate: 'afterkeydown'"/>
+								<input type="text" placeholder="Name" class="name control-label" data-bind="textInput: name"/>
 							</span>
 							<div class="controls">:
 								<div class="rules" data-bind="listbox:sets, rulesetcomplete: allsets"></div>
@@ -302,7 +300,7 @@
 			<div id="preamble">
 				<h4>
 					Preamble
-					<span data-bind="template: {name: 'helplink', data: {url: 'http://numbas-editor.readthedocs.org/en/latest/question-reference.html#preamble'}}"></span>
+					<helplink params="url: 'http://numbas-editor.readthedocs.org/en/latest/question-reference.html#preamble'"></helplink>
 				</h4>
 				<form class="form-horizontal">
 					<div class="control-group">
@@ -351,7 +349,7 @@
 									<div class="addgap"><button type="button" data-bind="click:addGap, text: gapfill.gaps().length ? 'Add another gap' : 'Add a gap'"></button></div>
 								</div>
 								<div class="steps clearfix">
-									<h6>Steps <span data-bind="template: {name: 'helplink', data: {topic: 'steps', url: 'http://numbas-editor.readthedocs.org/en/latest/question-parts.html#term-steps'}}"></span></h6>
+									<h6>Steps <helplink params="topic: 'steps', url: 'http://numbas-editor.readthedocs.org/en/latest/question-parts.html#term-steps'"></helplink></h6>
 									<ol class="steps nav nav-list" data-bind="foreach: {data: steps, afterAdd: Editor.afterAdd}">
 										<li class="part clearfix" data-bind="css: {active: $root.currentPart()==$data}">
 										<div class="reorder" data-bind="visible: $root.currentPart()==$data && parentList().length>1">
@@ -371,7 +369,7 @@
 				</div>
 				<div class="span9 part-edit" data-bind="with: currentPart">
 					<h4 class="header">
-						Type: <select class="type" data-bind="options: availableTypes, value:type, optionsText: 'niceName'"></select> <span data-bind="template: {name: 'helplink', data: {topic: 'part types', url: 'http://numbas-editor.readthedocs.org/en/latest/question-parts.html'}}"></span>
+						Type: <select class="type" data-bind="options: availableTypes, value:type, optionsText: 'niceName'"></select> <helplink params="topic: 'part types', url: 'http://numbas-editor.readthedocs.org/en/latest/question-parts.html'"></helplink>
 						<button class="copy-part" data-bind="click: copy">Copy this part</button>
 					</h4>
 					<div class="row-fluid">
@@ -384,11 +382,8 @@
 					<div class="row-fluid">
 						<div class="tab-content">
 							<section class="tab-pane" data-bind="css: {active: ko.utils.unwrapObservable(currentTab().id)=='prompt'}">
-								<span data-bind="template: {
-									name: 'helplink', 
-									data: {topic: 'part prompt', url: 'http://numbas-editor.readthedocs.org/en/latest/question-parts.html#term-prompt', big: true}
-								}"></span>
-								<div data-bind="writemaths: prompt, preambleCSS: $root.preamble.css"></div>
+								<helplink params="topic: 'part prompt', url: 'http://numbas-editor.readthedocs.org/en/latest/question-parts.html#term-prompt', big: true"></helplink>
+								<writemaths params="value: prompt, css: $root.preamble.css"></writemaths>
 							</section>
 							<!-- ko if: type().name=='gapfill' -->
 							<section class="tab-pane" data-bind="css: {active: ko.utils.unwrapObservable(currentTab().id)=='marking'}">
@@ -419,9 +414,9 @@
 									"></property>
 									<div class="control-group">
 										<label>
-											<span class="control-label">Correct answer <span data-bind="template: {name: 'helplink', data: {url: 'http://numbas-editor.readthedocs.org/en/latest/question-parts.html#term-correct-answer'}}"></span></span>
+											<span class="control-label">Correct answer <helplink params="url: 'http://numbas-editor.readthedocs.org/en/latest/question-parts.html#term-correct-answer'"></helplink></span>
 											<div class="controls">
-												<input class="monospace" type="text" data-bind="value: jme.answer, valueUpdate: 'input', autosize: {max: 500, min: 30, padding: 10, value: jme.answer}"/>
+												<input class="monospace" type="text" data-bind="textInput: jme.answer, autosize: {max: 500, min: 30, padding: 10, value: jme.answer}"/>
 												<span data-bind="JME: jme.answer" class="jme-answer"></span>
 											</div>
 										</label>
@@ -503,7 +498,7 @@
 										<div class="control-group">
 											<label>
 												<span class="control-label">Warning message</span>
-												<div class="controls" data-bind="writemaths: jme.maxlength.message, preambleCSS: $root.preamble.css"></div>
+												<div class="controls"><writemaths params="value: jme.maxlength.message, css: $root.preamble.css"></writemaths></div>
 											</label>
 										</div>
 									</div>
@@ -523,7 +518,7 @@
 										<div class="control-group">
 											<label>
 												<span class="control-label">Warning message</span>
-												<div class="controls" data-bind="writemaths: jme.minlength.message, preambleCSS: $root.preamble.css"></div>
+												<div class="controls"><writemaths params="value: jme.minlength.message, css: $root.preamble.css"></writemaths></div>
 											</label>
 										</div>
 									</div>
@@ -547,7 +542,7 @@
 										<div class="control-group">
 											<label>
 												<span class="control-label">Warning message</span>
-												<div class="controls" data-bind="writemaths: jme.musthave.message, preambleCSS: $root.preamble.css"></div>
+												<div class="controls"><writemaths params="value: jme.musthave.message, css: $root.preamble.css"></writemaths></div>
 											</label>
 										</div>
 									</div>
@@ -571,7 +566,7 @@
 										<div class="control-group">
 											<label>
 												<span class="control-label">Warning message</span>
-												<div class="controls" data-bind="writemaths: jme.notallowed.message, preambleCSS: $root.preamble.css"></div>
+												<div class="controls"><writemaths params="value: jme.notallowed.message, css: $root.preamble.css"></writemaths></div>
 											</label>
 										</div>
 									</div>
@@ -627,10 +622,10 @@
 										min:0, 
 										helpURL: 'http://numbas-editor.readthedocs.org/en/latest/question-parts.html#term-show-correct-answer-on-reveal'
 									"></booleanproperty>
-									<percentproperty data-bind="fadeVisible: numberentry.integerAnswer" params="
+									<div data-bind="fadeVisible: numberentry.integerAnswer"><percentproperty params="
 										label: 'Partial credit for non-integer answer',
 										value: numberentry.integerPartialCredit
-									"></percentproperty>
+									"></percentproperty></div>
 									<selectproperty params="
 										label: 'Precision restriction',
 										helpURL: 'http://numbas-editor.readthedocs.org/en/latest/question-parts.html#term-precision-restriction',
@@ -638,23 +633,23 @@
 										value: numberentry.precisionType, 
 										optionsText: 'niceName'
 									"></selectproperty>
-									<property data-bind="fadeVisible: numberentry.precisionType().name!='none'" params="
+									<div data-bind="fadeVisible: numberentry.precisionType().name!='none'"><property params="
 										label: numberentry.precisionWord,
 										value: numberentry.precision
-									"></property>
-									<booleanproperty data-bind="fadeVisible: numberentry.precisionType().name!='none'" params="
+									"></property></div>
+									<div data-bind="fadeVisible: numberentry.precisionType().name!='none'"><booleanproperty params="
 										label: 'Require trailing zeroes?',
 										value: numberentry.strictPrecision, 
 										helpURL: 'http://numbas-editor.readthedocs.org/en/latest/question-parts.html#term-require-trailing-zeroes'
-									"></booleanproperty>
-									<percentproperty data-bind="fadeVisible: numberentry.precisionType().name!='none'" params="
+									"></booleanproperty></div>
+									<div data-bind="fadeVisible: numberentry.precisionType().name!='none'"><percentproperty params="
 										label: 'Partial credit for wrong precision',
 										value: numberentry.precisionPartialCredit
-									"></percentproperty>
+									"></percentproperty></div>
 									<div class="control-group" data-bind="fadeVisible: numberentry.precisionType().name!='none'">
 										<label>
 											<span class="control-label">Message if wrong precision</span>
-											<div class="controls" data-bind="writemaths: numberentry.precisionMessage, preambleCSS: $root.preamble.css"></div>
+											<div class="controls"><writemaths params="value: numberentry.precisionMessage, css: $root.preamble.css"></writemaths></div>
 										</label>
 									</div>
 								</form>
@@ -687,59 +682,70 @@
 										min: 0, 
 										helpURL: 'http://numbas-editor.readthedocs.org/en/latest/question-parts.html#term-show-correct-answer-on-reveal'
 									"></booleanproperty>
-									<property data-bind="fadeVisible: showCorrectAnswer" params="
+									<div data-bind="fadeVisible: showCorrectAnswer"><property params="
 										label: 'Display answer',
 										value: patternmatch.displayAnswer, 
 										helpURL: 'http://numbas-editor.readthedocs.org/en/latest/question-parts.html#term-display-answer'
-									"></property>
+									"></property></div>
 									<booleanproperty params="
 										label: 'Must the answer be in the correct case?', 
 										value: patternmatch.caseSensitive, 
 										helpURL: 'http://numbas-editor.readthedocs.org/en/latest/question-parts.html#term-must-the-answer-be-in-the-correct-case'
 									"></booleanproperty>
-									<percentproperty data-bind="fadeVisible:patternmatch.caseSensitive" params="
+									<div data-bind="fadeVisible:patternmatch.caseSensitive"><percentproperty params="
 										label: 'Partial credit for answer not matching case',
 										value: patternmatch.partialCredit
-									"></percentproperty>
+									"></percentproperty></div>
 								</form>
 							</section>
 							<!-- /ko -->
 							<!-- ko if: type().name=='1_n_2' -->
 							<section class="tab-pane" data-bind="css: {active: ko.utils.unwrapObservable(currentTab().id)=='marking'}">
 								<form class="form-horizontal">
-									<div class="control-group" data-bind="template: {
-										name: 'property',
-										data: {label:'Minimum marks',property:multiplechoice.minMarks, max:multiplechoice.maxMarks, helpURL: 'http://numbas-editor.readthedocs.org/en/latest/question-parts.html#term-minimum-marks' }
-									}"></div>
-									<div class="control-group" data-bind="template: {
-										name: 'property',
-										data: {label:'Maximum marks',property:multiplechoice.maxMarks, min:multiplechoice.minMarks, helpURL: 'http://numbas-editor.readthedocs.org/en/latest/question-parts.html#term-maximum-marks'}
-									}"></div>
-									<div class="control-group" data-bind="template: {
-										name: 'booleanproperty',
-										data: {label:'Show correct answer on reveal?',property:showCorrectAnswer,min:0, helpURL: 'http://numbas-editor.readthedocs.org/en/latest/question-parts.html#term-show-correct-answer-on-reveal'}
-									}"></div>
-									<div class="control-group" data-bind="visible: !parent, template: {
-										name: 'property',
-										data: {label:'Penalty for revealing steps',property:stepsPenalty,min:0, helpURL: 'http://numbas-editor.readthedocs.org/en/latest/question-parts.html#term-penalty-for-revealing-steps'}
-									}"></div>
-									<div class="control-group" data-bind="template: {
-										name: 'booleanproperty',
-										data: {label:'Shuffle order of choices?', property:multiplechoice.shuffleChoices, helpURL: 'http://numbas-editor.readthedocs.org/en/latest/question-parts.html#term-shuffle-order-of-choices'}
-									}"></div>
-									<div class="control-group" data-bind="fadeVisible: multiplechoice.displayType().name!='dropdown',
-									template: {
-										name: 'property',
-										data: {label:'Number of display columns',property:multiplechoice.displayColumns, helpURL: 'http://numbas-editor.readthedocs.org/en/latest/question-parts.html#term-number-of-display-columns'}
-									}"></div>
-									<div class="control-group" data-bind="template: {
-										name: 'booleanproperty',
-										data: {label: 'Custom marking matrix?', property: multiplechoice.customMarking, helpURL: 'http://numbas-editor.readthedocs.org/en/latest/question-parts.html#term-custom-marking-matrix'}
-									}"></div>
-									<div class="control-group" data-bind="fadeVisible: multiplechoice.customMarking, template: {
-										name: 'property',
-										data: {label: 'Custom matrix expression', property: multiplechoice.customMatrix, helpURL: 'http://numbas-editor.readthedocs.org/en/latest/question-parts.html#term-custom-matrix-expression'}
-									}"></div>
+									<property params="
+										label: 'Minimum marks',
+										value: multiplechoice.minMarks, 
+										max:multiplechoice.maxMarks, 
+										helpURL: 'http://numbas-editor.readthedocs.org/en/latest/question-parts.html#term-minimum-marks'
+									"></property>
+									<property params="
+										label: 'Maximum marks',
+										value: multiplechoice.maxMarks, 
+										min:multiplechoice.minMarks, 
+										helpURL: 'http://numbas-editor.readthedocs.org/en/latest/question-parts.html#term-maximum-marks'
+									"></property>
+									<booleanproperty params="
+										label: 'Show correct answer on reveal?',
+										value: showCorrectAnswer,
+										min:0, 
+										helpURL: 'http://numbas-editor.readthedocs.org/en/latest/question-parts.html#term-show-correct-answer-on-reveal'
+									"></booleanproperty>
+									<property params="
+										label: 'Penalty for revealing steps',
+										value: stepsPenalty,
+										min:0, 
+										helpURL: 'http://numbas-editor.readthedocs.org/en/latest/question-parts.html#term-penalty-for-revealing-steps'
+									"></property>
+									<booleanproperty params="
+										label: 'Shuffle order of choices?', 
+										value: multiplechoice.shuffleChoices, 
+										helpURL: 'http://numbas-editor.readthedocs.org/en/latest/question-parts.html#term-shuffle-order-of-choices'
+									"></booleanproperty>
+									<div data-bind="fadeVisible: multiplechoice.displayType().name!='dropdown'"><property params="
+										label: 'Number of display columns',
+										value: multiplechoice.displayColumns, 
+										helpURL: 'http://numbas-editor.readthedocs.org/en/latest/question-parts.html#term-number-of-display-columns'
+									"></property></div>
+									<booleanproperty params="
+										label: 'Custom marking matrix?', 
+										value: multiplechoice.customMarking, 
+										helpURL: 'http://numbas-editor.readthedocs.org/en/latest/question-parts.html#term-custom-marking-matrix'
+									"></booleanproperty>
+									<div data-bind="fadeVisible: multiplechoice.customMarking"><property params="
+										label: 'Custom matrix expression', 
+										value: multiplechoice.customMatrix, 
+										helpURL: 'http://numbas-editor.readthedocs.org/en/latest/question-parts.html#term-custom-matrix-expression'
+									"></property></div>
 								</form>
 							</section>
 							<section class="tab-pane" data-bind="css: {active: ko.utils.unwrapObservable(currentTab().id)=='choices'}">
@@ -750,13 +756,13 @@
 											<button type="button" type="button" class="delete" data-bind="click:remove" title="Delete this choice"></button>
 											<label>
 												Marks:
-												<input class="marks" type="text" data-bind="value:marks, valueUpdate:'input', autosize: {max: 500, min: 30, padding: 10, value: marks}"/>
+												<input class="marks" type="text" data-bind="textInput: marks, autosize: {max: 500, min: 30, padding: 10, value: marks}"/>
 											</label>
 											<label>
 												Distractor Message:
-												<input type="text" data-bind="value:distractor, valueUpdate:'input', autosize: {max: 500, min: 100, padding: 10, value: distractor}"/>
+												<input type="text" data-bind="textInput: distractor, autosize: {max: 500, min: 100, padding: 10, value: distractor}"/>
 											</label>
-											<div id="description" data-bind="writemaths: content, wmHeight: 100, wmWidth: 500, preambleCSS: $root.preamble.css"></div>
+											<writemaths params="value: content, height: 100, width: 500, css: $root.preamble.css"></writemaths>
 										</form>
 									</li>
 									<!-- /ko -->
@@ -767,47 +773,62 @@
 							<!-- ko if: type().name=='m_n_2' -->
 							<section class="tab-pane" data-bind="css: {active: ko.utils.unwrapObservable(currentTab().id)=='marking'}">
 								<form class="form-horizontal">
-									<div class="control-group" data-bind="template: {
-										name: 'property',
-										data: {label:'Minimum marks',property:multiplechoice.minMarks, max:multiplechoice.maxMarks }
-									}"></div>
-									<div class="control-group" data-bind="template: {
-										name: 'property',
-										data: {label:'Maximum marks',property:multiplechoice.maxMarks, min:multiplechoice.minMarks}
-									}"></div>
-									<div class="control-group" data-bind="template: {
-										name: 'booleanproperty',
-										data: {label:'Show correct answer on reveal?',property:showCorrectAnswer,min:0, helpURL: 'http://numbas-editor.readthedocs.org/en/latest/question-parts.html#term-show-correct-answer-on-reveal'}
-									}"></div>
-									<div class="control-group" data-bind="visible: !parent, template: {
-										name: 'property',
-										data: {label:'Penalty for revealing steps',property:stepsPenalty,min:0, helpURL: 'http://numbas-editor.readthedocs.org/en/latest/question-parts.html#term-penalty-for-revealing-steps'}
-									}"></div>
-									<div class="control-group" data-bind="template: {
-										name: 'property',
-										data: {label:'Minimum answers:',property:multiplechoice.minAnswers, max:multiplechoice.maxAnswers}
-									}"></div>
-									<div class="control-group" data-bind="template: {
-										name: 'property',
-										data: {label:'Maximum answers:',property:multiplechoice.maxAnswers, min:multiplechoice.minAnswers}
-									}"></div>
-									<div class="control-group" data-bind="template: {
-										name: 'booleanproperty',
-										data: {label:'Shuffle order of choices?', property:multiplechoice.shuffleChoices}
-									}"></div>
-									<div class="control-group" data-bind="fadeVisible: multiplechoice.displayType().name!='dropdown',
-									template: {
-										name: 'property',
-										data: {label:'Number of display columns',property:multiplechoice.displayColumns}
-									}"></div>
-									<div class="control-group" data-bind="template: {
-										name: 'booleanproperty',
-										data: {label: 'Custom marking matrix?', property: multiplechoice.customMarking}
-									}"></div>
-									<div class="control-group" data-bind="fadeVisible: multiplechoice.customMarking, template: {
-										name: 'property',
-										data: {label: 'Custom matrix expression', property: multiplechoice.customMatrix}
-									}"></div>
+									<property params="
+										label: 'Minimum marks',
+										value: multiplechoice.minMarks, 
+										max:multiplechoice.maxMarks, 
+										helpURL: 'http://numbas-editor.readthedocs.org/en/latest/question-parts.html#term-minimum-marks'
+									"></property>
+									<property params="
+										label: 'Maximum marks',
+										value: multiplechoice.maxMarks, 
+										min:multiplechoice.minMarks, 
+										helpURL: 'http://numbas-editor.readthedocs.org/en/latest/question-parts.html#term-maximum-marks'
+									"></property>
+									<booleanproperty params="
+										label: 'Show correct answer on reveal?',
+										value: showCorrectAnswer,
+										min:0, 
+										helpURL: 'http://numbas-editor.readthedocs.org/en/latest/question-parts.html#term-show-correct-answer-on-reveal'
+									"></booleanproperty>
+									<property params="
+										label: 'Penalty for revealing steps',
+										value: stepsPenalty,
+										min:0, 
+										helpURL: 'http://numbas-editor.readthedocs.org/en/latest/question-parts.html#term-penalty-for-revealing-steps'
+									"></property>
+									<property params="
+										label: 'Minimum answers:',
+										value: multiplechoice.minAnswers, 
+										max:multiplechoice.maxAnswers,
+										helpURL: 'http://numbas-editor.readthedocs.org/en/latest/question-parts.html#term-minimum-answers'
+									"></property>
+									<property params="
+										label: 'Maximum answers:',
+										property: multiplechoice.maxAnswers, 
+										min:multiplechoice.minAnswers,
+										helpURL: 'http://numbas-editor.readthedocs.org/en/latest/question-parts.html#term-maximum-answers'
+									"></property>
+									<booleanproperty params="
+										label: 'Shuffle order of choices?', 
+										value: multiplechoice.shuffleChoices, 
+										helpURL: 'http://numbas-editor.readthedocs.org/en/latest/question-parts.html#term-shuffle-order-of-choices'
+									"></booleanproperty>
+									<div data-bind="fadeVisible: multiplechoice.displayType().name!='dropdown'"><property params="
+										label: 'Number of display columns',
+										value: multiplechoice.displayColumns, 
+										helpURL: 'http://numbas-editor.readthedocs.org/en/latest/question-parts.html#term-number-of-display-columns'
+									"></property></div>
+									<booleanproperty params="
+										label: 'Custom marking matrix?', 
+										value: multiplechoice.customMarking, 
+										helpURL: 'http://numbas-editor.readthedocs.org/en/latest/question-parts.html#term-custom-marking-matrix'
+									"></booleanproperty>
+									<div data-bind="fadeVisible: multiplechoice.customMarking"><property params="
+										label: 'Custom matrix expression', 
+										value: multiplechoice.customMatrix, 
+										helpURL: 'http://numbas-editor.readthedocs.org/en/latest/question-parts.html#term-custom-matrix-expression'
+									"></property></div>
 								</form>
 							</section>
 							<section class="tab-pane" data-bind="css: {active: ko.utils.unwrapObservable(currentTab().id)=='choices'}">
@@ -818,13 +839,13 @@
 											<button type="button" class="delete" data-bind="click:remove" title="Delete this choice"></button>
 											<label>
 												Marks:
-												<input class="marks" type="text" data-bind="value:marks, valueUpdate:'input', autosize: {max: 500, min: 30, padding: 10, value: marks}"/>
+												<input class="marks" type="text" data-bind="textInput: marks, autosize: {max: 500, min: 30, padding: 10, value: marks}"/>
 											</label>
 											<label>
 												Distractor Message:
-												<input type="text" data-bind="value:distractor, valueUpdate:'input', autosize: {max: 500, min: 100, padding: 10, value: distractor}"/>
+												<input type="text" data-bind="textInput: distractor, autosize: {max: 500, min: 100, padding: 10, value: distractor}"/>
 											</label>
-											<div id="description" data-bind="writemaths: content, wmHeight: 100, wmWidth: 500, preambleCSS: $root.preamble.css"></div>
+											<writemaths params="value: content, height: 100, width: 500, css: $root.preamble.css"></writemaths>
 										</form>
 									</li>
 									<!-- /ko -->
@@ -835,54 +856,68 @@
 							<!-- ko if: type().name=='m_n_x' -->
 							<section class="tab-pane" data-bind="css: {active: ko.utils.unwrapObservable(currentTab().id)=='marking'}">
 								<form class="form-horizontal">
-									<div class="control-group" data-bind="template: {
-										name: 'property',
-										data: {label:'Minimum marks',property:multiplechoice.minMarks, max:multiplechoice.maxMarks }
-									}"></div>
-									<div class="control-group" data-bind="template: {
-										name: 'property',
-										data: {label:'Maximum marks',property:multiplechoice.maxMarks, min:multiplechoice.minMarks}
-									}"></div>
-									<div class="control-group" data-bind="template: {
-										name: 'booleanproperty',
-										data: {label:'Show correct answer on reveal?',property:showCorrectAnswer,min:0, helpURL: 'http://numbas-editor.readthedocs.org/en/latest/question-parts.html#term-show-correct-answer-on-reveal'}
-									}"></div>
-									<div class="control-group" data-bind="visible: !parent, template: {
-										name: 'property',
-										data: {label:'Penalty for revealing steps',property:stepsPenalty,min:0, helpURL: 'http://numbas-editor.readthedocs.org/en/latest/question-parts.html#term-penalty-for-revealing-steps'}
-									}"></div>
-									<div class="control-group" data-bind="template: {
-										name: 'property',
-										data: {label:'Minimum answers:',property:multiplechoice.minAnswers, max:multiplechoice.maxAnswers}
-									}"></div>
-									<div class="control-group" data-bind="template: {
-										name: 'property',
-										data: {label:'Maximum answers:',property:multiplechoice.maxAnswers, min:multiplechoice.minAnswers}
-									}"></div>
-									<div class="control-group" data-bind="template: {
-										name: 'booleanproperty',
-										data: {label:'Shuffle order of choices?', property:multiplechoice.shuffleChoices}
-									}"></div>
-									<div class="control-group" data-bind="template: {
-										name: 'booleanproperty',
-										data: {label:'Shuffle order of answers?', property:multiplechoice.shuffleAnswers}
-									}"></div>
-									<div class="control-group">
-										<label>
-											<span class="control-label">Selection type:</span>
-											<div class="controls">
-												<select data-bind="options: multiplechoice.displayTypes.m_n_x, value: multiplechoice.displayType, optionsText: 'niceName'"></select>
-											</div>
-										</label>
-									</div>
-									<div class="control-group" data-bind="template: {
-										name: 'booleanproperty',
-										data: {label: 'Custom marking matrix?', property: multiplechoice.customMarking}
-									}"></div>
-									<div class="control-group" data-bind="fadeVisible: multiplechoice.customMarking, template: {
-										name: 'property',
-										data: {label: 'Custom matrix expression', property: multiplechoice.customMatrix}
-									}"></div>
+									<property params="
+										label: 'Minimum marks',
+										value: multiplechoice.minMarks, 
+										max:multiplechoice.maxMarks, 
+										helpURL: 'http://numbas-editor.readthedocs.org/en/latest/question-parts.html#term-minimum-marks'
+									"></property>
+									<property params="
+										label: 'Maximum marks',
+										value: multiplechoice.maxMarks, 
+										min:multiplechoice.minMarks, 
+										helpURL: 'http://numbas-editor.readthedocs.org/en/latest/question-parts.html#term-maximum-marks'
+									"></property>
+									<booleanproperty params="
+										label: 'Show correct answer on reveal?',
+										value: showCorrectAnswer,
+										min:0, 
+										helpURL: 'http://numbas-editor.readthedocs.org/en/latest/question-parts.html#term-show-correct-answer-on-reveal'
+									"></booleanproperty>
+									<property params="
+										label: 'Penalty for revealing steps',
+										value: stepsPenalty,
+										min:0, 
+										helpURL: 'http://numbas-editor.readthedocs.org/en/latest/question-parts.html#term-penalty-for-revealing-steps'
+									"></property>
+									<property params="
+										label: 'Minimum answers:',
+										value: multiplechoice.minAnswers, 
+										max:multiplechoice.maxAnswers,
+										helpURL: 'http://numbas-editor.readthedocs.org/en/latest/question-parts.html#term-minimum-answers'
+									"></property>
+									<property params="
+										label: 'Maximum answers:',
+										property: multiplechoice.maxAnswers, 
+										min:multiplechoice.minAnswers,
+										helpURL: 'http://numbas-editor.readthedocs.org/en/latest/question-parts.html#term-maximum-answers'
+									"></property>
+									<booleanproperty params="
+										label: 'Shuffle order of choices?', 
+										value: multiplechoice.shuffleChoices, 
+										helpURL: 'http://numbas-editor.readthedocs.org/en/latest/question-parts.html#term-shuffle-order-of-choices'
+									"></booleanproperty>
+									<booleanproperty params="
+										label: 'Shuffle order of answers?',
+										value: multiplechoice.shuffleAnswers, 
+										helpURL: 'http://numbas-editor.readthedocs.org/en/latest/question-parts.html#term-shuffle-order-of-answers'
+									"></booleanproperty>
+									<selectproperty params="
+										label: 'Selection type',
+										options: multiplechoice.displayTypes.m_n_x,
+										value: multiplechoice.displayType,
+										optionsText: 'niceName'
+									"></selectproperty>
+									<booleanproperty params="
+										label: 'Custom marking matrix?', 
+										value: multiplechoice.customMarking, 
+										helpURL: 'http://numbas-editor.readthedocs.org/en/latest/question-parts.html#term-custom-marking-matrix'
+									"></booleanproperty>
+									<div data-bind="fadeVisible: multiplechoice.customMarking"><property params="
+										label: 'Custom matrix expression', 
+										value: multiplechoice.customMatrix, 
+										helpURL: 'http://numbas-editor.readthedocs.org/en/latest/question-parts.html#term-custom-matrix-expression'
+									"></property></div>
 								</form>
 							</section>
 							<section class="tab-pane" data-bind="css: {active: ko.utils.unwrapObservable(currentTab().id)=='choices'}">
@@ -894,7 +929,7 @@
 												<td></td>
 												<!-- ko foreach: {data: multiplechoice.answers, afterAdd: Editor.afterAdd} -->
 													<th>
-														<input type="text" data-bind="value:content, valueUpdate:'input'">
+														<input type="text" data-bind="textInput: content">
 														<button type="button" class="delete" data-bind="click:function(){this.remove()}" title="Delete this answer"></button>
 													</th>
 												<!-- /ko -->
@@ -907,12 +942,12 @@
 											<!-- ko foreach: {data: multiplechoice.choices, afterAdd: Editor.afterAdd} -->
 												<tr>
 													<th>
-														<input type="text" data-bind="value:content, valueUpdate:'input'"/>
+														<input type="text" data-bind="textInput: content"/>
 														<button type="button" class="delete" data-bind="click:remove" title="Delete this choice"></button>
 													</th> 
 													<!-- ko foreach: answers -->
 														<td>
-															<input type="text" class="marks monospace" data-bind="visible: !$parents[1].multiplechoice.customMarking(), value: marks, valueUpdate:'input'"/>
+															<input type="text" class="marks monospace" data-bind="visible: !$parents[1].multiplechoice.customMarking(), textInput:  marks"/>
 														</td>
 													<!-- /ko -->
 												</tr>
@@ -928,7 +963,7 @@
 									<div class="control-group">
 										<label class="control-label">
 											<span data-bind="text: displayName"></span><span data-bind="if: active"> (active)</span>
-											<span data-bind="template: {name: 'helplink', data: {topic: 'the advice section', url: helpURL}}"></span>
+											<helplink params="topic: 'the advice section', url: helpURL"></helplink>
 										</label>
 										<div class="controls">
 											<textarea data-bind="valueUpdate: 'afterkeydown', codemirror: script, codemirrorMode: 'javascript'"></textarea>
@@ -942,11 +977,11 @@
 			</div>
 		</section>
 		<section class="tab-pane" data-bind="css: {active: ko.utils.unwrapObservable($root.currentTab().id)=='advice'}">
-			<span data-bind="template: {name: 'helplink', data: {topic: 'the advice section', url: 'http://numbas-editor.readthedocs.org/en/latest/question-reference.html#advice', big: true}}"></span>
-			<div data-bind="writemaths:advice, preambleCSS: $root.preamble.css"></div>
+			<helplink params="topic: 'the advice section', url: 'http://numbas-editor.readthedocs.org/en/latest/question-reference.html#advice', big: true"></helplink>
+			<writemaths params="value:: advice, css: $root.preamble.css"></writemaths>
 		</section>
 		<section class="tab-pane" data-bind="css: {active: ko.utils.unwrapObservable($root.currentTab().id)=='resources'}">
-			<span data-bind="template: {name: 'helplink', data: {url: 'http://numbas-editor.readthedocs.org/en/latest/question-reference.html#resources', big: true}}"></span>
+			<helplink params="url: 'http://numbas-editor.readthedocs.org/en/latest/question-reference.html#resources', big: true"></helplink>
 			<form data-bind="fileupload: resources" data-url="{% url 'upload_resource' object.pk object.slug %}">
 				{% csrf_token %}
                 <div class="control-group">
@@ -986,7 +1021,7 @@
 			{% endif %}
 		</section>
 		<section class="tab-pane" data-bind="css: {active: ko.utils.unwrapObservable($root.currentTab().id)=='access'}">
-			<span data-bind="template: {name: 'helplink', data: {url: 'http://numbas-editor.readthedocs.org/en/latest/question-reference.html#access', big: true}}"></span>
+			<helplink params="url: 'http://numbas-editor.readthedocs.org/en/latest/question-reference.html#access', big: true"></helplink>
 			<form class="form-horizontal">
 				<div class="control-group">
 					<label>
@@ -1129,3 +1164,8 @@
 		</div>
 	</div>
 {% endblock editor %}
+
+{% block ko_components %}
+	{{ block.super }}
+	{% include "editable-components.html" %}
+{% endblock ko_components %}

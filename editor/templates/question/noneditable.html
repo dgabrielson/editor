@@ -14,7 +14,6 @@ Progress: <span data-bind="text: progress()[1], attr: {class: 'progress-display 
 {% endblock progress %}
 
 {% block editor %}
-	{% include "noneditable.html" %}
 	<div class="tab-content">
 		<section class="tab-pane" data-bind="css: {active: ko.utils.unwrapObservable($root.currentTab().id)=='general'}">
 			<div class="row-fluid section">
@@ -106,7 +105,7 @@ Progress: <span data-bind="text: progress()[1], attr: {class: 'progress-display 
 								<label>
 									<span class="control-label">
 										Name
-										<span data-bind="template: {name: 'helplink', data: {url: 'http://numbas-editor.readthedocs.org/en/latest/jme-reference.html#variable-names'}}"></span>
+										<helplink params="url: 'http://numbas-editor.readthedocs.org/en/latest/question-reference.html#term-name'"></helplink>
 									</span>
 									<div class="controls">
 										<code class="name" data-bind="text: name"></code>
@@ -115,15 +114,18 @@ Progress: <span data-bind="text: progress()[1], attr: {class: 'progress-display 
 								</label>
 							</div>
 							<div>
-								<div class="control-group" data-bind="template: {
-									name: 'selectproperty',
-									data: {label:'Data type',property: templateType, options: templateTypes, optionsText: 'name', helpURL: 'http://numbas-editor.readthedocs.org/en/latest/question-parts.html#term-checking-accuracy'}
-								}"></div>
+								<selectproperty params="
+									label: 'Data type',
+									property: templateType, 
+									options: templateTypes, 
+									optionsText: 'name', 
+									helpURL: 'http://numbas-editor.readthedocs.org/en/latest/question-reference.html#term-data-type'
+								"></selectproperty>
 							</div>
 							<div class="control-group">
 								<label class="control-label">
 									Value
-									<span data-bind="template: {name: 'helplink', data: {url: 'http://numbas-editor.readthedocs.org/en/latest/question-reference.html#variables'}}"></span>
+									<helplink params="url: 'http://numbas-editor.readthedocs.org/en/latest/question-reference.html#term-value'"></helplink>
 								</label>
 
 								<div class="controls">
@@ -255,7 +257,7 @@ Progress: <span data-bind="text: progress()[1], attr: {class: 'progress-display 
 			<div id="preamble">
 				<h4>
 					Preamble
-					<span data-bind="template: {name: 'helplink', data: {url: 'http://numbas-editor.readthedocs.org/en/latest/question-reference.html#preamble'}}"></span>
+					<helplink params="url: 'http://numbas-editor.readthedocs.org/en/latest/question-reference.html#preamble'"></helplink>
 				</h4>
 				<form class="form-horizontal">
 					<div class="control-group">
@@ -284,7 +286,7 @@ Progress: <span data-bind="text: progress()[1], attr: {class: 'progress-display 
 						<li class="part clearfix" data-bind="css: {active: $root.currentPart()==$data}">
 							<a data-bind="text: header, click: $root.showPart" href="#"></a>
 							<div class="subparts" data-bind="fadeVisible: meOrChildSelected">
-								<div class="gaps" data-bind="visible: type().name=='gapfill' && gaps().length>0">
+								<div class="gaps" data-bind="visible: type().name=='gapfill' && gapfill.gaps().length>0">
 									<h6>Gaps</h6>
 									<ol class="gaps nav nav-list" data-bind="foreach: gapfill.gaps">
 										<li class="part clearfix" data-bind="css: {active: $root.currentPart()==$data}">
@@ -305,9 +307,6 @@ Progress: <span data-bind="text: progress()[1], attr: {class: 'progress-display 
 					</ol>
 				</div>
 				<div class="span9 part-edit" data-bind="with: currentPart">
-					<h4 class="header">
-						<span data-bind="text: $index()+'. '+type().niceName"></span>
-					</h4>
 					<div class="row-fluid">
 						<ul class="nav nav-tabs" data-bind="foreach: tabs">
 							<li data-bind="css: {active: ko.utils.unwrapObservable($parent.currentTab().id) == $data.id}">
@@ -324,73 +323,99 @@ Progress: <span data-bind="text: progress()[1], attr: {class: 'progress-display 
 							<!-- ko if: type().name=='gapfill' -->
 							<section class="tab-pane" data-bind="css: {active: ko.utils.unwrapObservable(currentTab().id)=='marking'}">
 								<form class="form-horizontal">
-									<div class="control-group" data-bind="template: {
-										name: 'property',
-										data: {label:'Penalty for revealing steps',property:stepsPenalty,min:0}
-									}"></div>
+									<property params="
+												label: 'Penalty for revealing steps',
+												value: stepsPenalty,
+												min: 0,
+												helpUrl: 'http://numbas-editor.readthedocs.org/en/latest/question-parts.html#term-penalty-for-revealing-steps'
+									"></property>
 								</form>
 							</section>
 							<!-- /ko -->
 							<!-- ko if: type().name=='jme' -->
 							<section class="tab-pane" data-bind="css: {active: ko.utils.unwrapObservable(currentTab().id)=='marking'}">
 								<form class="form-horizontal">
-									<div class="control-group" data-bind="template: {
-										name: 'property',
-										data: {label:'Marks',property:marks,min:0}
-									}"></div>
-									<div class="control-group" data-bind="template: {
-										name: 'property',
-										data: {label:'Penalty for revealing steps',property:stepsPenalty,min:0}
-									}"></div>
+									<property params="
+										label:'Marks',
+										value: marks,
+										min:0, 
+										helpURL: 'http://numbas-editor.readthedocs.org/en/latest/question-parts.html#term-marks'
+									"></property>
+									<property data-bind="visible: !parent" params="
+										label:'Penalty for revealing steps',
+										value: stepsPenalty,
+										min:0, 
+										helpURL: 'http://numbas-editor.readthedocs.org/en/latest/question-parts.html#term-penalty-for-revealing-steps'
+									"></property>
 									<div class="control-group">
 										<label>
-											<span class="control-label">Correct answer</span>
+											<span class="control-label">Correct answer <helplink params="url: 'http://numbas-editor.readthedocs.org/en/latest/question-parts.html#term-correct-answer'"></helplink></span>
 											<div class="controls">
+												<input class="monospace" type="text" data-bind="textInput: jme.answer, autosize: {max: 500, min: 30, padding: 10, value: jme.answer}"/>
 												<span data-bind="JME: jme.answer" class="jme-answer"></span>
 											</div>
 										</label>
 									</div>
-									<div class="control-group" data-bind="template: {
-										name: 'booleanproperty',
-										data: {label:'Show preview of student\'s answer?', property:jme.showPreview}
-									}"></div>
-									<div class="control-group" data-bind="template: {
-										name: 'property',
-										data: {label:'Answer simplification rules',property:jme.answerSimplification}
-									}"></div>
+									<booleanproperty params="
+										label: 'Show correct answer on reveal?',
+										value: showCorrectAnswer,
+										min:0, 
+										helpURL: 'http://numbas-editor.readthedocs.org/en/latest/question-parts.html#term-show-correct-answer-on-reveal'
+									"></booleanproperty>
+									<booleanproperty params="
+										label: 'Show preview of student\'s answer?', 
+										value: jme.showPreview, 
+										helpURL: 'http://numbas-editor.readthedocs.org/en/latest/question-parts.html#term-show-preview-of-student-s-answer'
+									"></booleanproperty>
+									<property params="
+										label: 'Answer simplification rules',
+										value: jme.answerSimplification, 
+										monospace: true, 
+										helpURL: 'http://numbas-editor.readthedocs.org/en/latest/question-parts.html#term-answer-simplification-rules'
+									"></property>
 								</form>
 							</section>
 							<section class="tab-pane" data-bind="css: {active: ko.utils.unwrapObservable(currentTab().id)=='restrictions'}">
 								<form class="form-horizontal">
 									<h4>Checking accuracy</h4>
-									<div class="control-group">
-										<label>
-											<span class="control-label">Checking type</span>
-											<div class="controls">
-												<span data-bind="text:jme.checkingType().niceName"></span>
-											</div>
-										</label>
-									</div>
-									<div class="control-group" data-bind="template: {
-										name: 'property',
-										data: {label:'Checking accuracy',property:jme.checkingType().accuracy,min:0}
-									}"></div>
-									<div class="control-group" data-bind="template: {
-										name: 'property',
-										data: {label:'Points to check',property:jme.vset.points,min:0}
-									}"></div>
-									<div class="control-group" data-bind="template: {
-										name: 'property',
-										data: {label:'Maximum no. of failures',property:jme.failureRate,min:0, max:jme.vset.points}
-									}"></div>
-									<div class="control-group" data-bind="template: {
-										name: 'property',
-										data: {label:'Checking range start',property:jme.vset.start,max:jme.vset.end}
-									}"></div>
-									<div class="control-group" data-bind="template: {
-										name: 'property',
-										data: {label:'Checking range end',property:jme.vset.end,min:jme.vset.start}
-									}"></div>
+									<selectproperty params="
+										label: 'Checking type',
+										helpURL: 'http://numbas-editor.readthedocs.org/en/latest/question-parts.html#term-checking-type',
+										options: jme.checkingTypes,
+										value: jme.checkingType,
+										optionsText: 'niceName'
+									"></selectproperty>
+									<property params="
+										label: 'Checking accuracy',
+										value: jme.checkingType().accuracy,
+										min: 0,
+										helpURL: 'http://numbas-editor.readthedocs.org/en/latest/question-parts.html#term-checking-accuracy'
+									"></property>
+									<property params="
+										label: 'Points to check',
+										value: jme.vset.points,
+										min:0, 
+										helpURL: 'http://numbas-editor.readthedocs.org/en/latest/question-parts.html#term-points-to-check'
+									"></property>
+									<property params="
+										label: 'Maximum no. of failures',
+										value: jme.failureRate,
+										min:0, 
+										max:jme.vset.points, 
+										helpURL: 'http://numbas-editor.readthedocs.org/en/latest/question-parts.html#term-maximum-no-of-failures'
+									"></property>
+									<property params="
+										label: 'Checking range start',
+										value :jme.vset.start,
+										max: jme.vset.end, 
+										helpURL: 'http://numbas-editor.readthedocs.org/en/latest/question-parts.html#term-checking-range-start'
+									"></property>
+									<property params="
+										label: 'Checking range end',
+										value: jme.vset.end,
+										min:jme.vset.start, 
+										helpURL: 'http://numbas-editor.readthedocs.org/en/latest/question-parts.html#term-checking-range-end'
+									"></property>
 								</form>
 								<h4>Length restriction</h4>
 								<form class="form-horizontal">
@@ -835,3 +860,8 @@ Progress: <span data-bind="text: progress()[1], attr: {class: 'progress-display 
 	</div>
 
 {% endblock editor %}
+
+{% block ko_components %}
+	{{ block.super }}
+	{% include "noneditable-components.html" %}
+{% endblock ko_components %}

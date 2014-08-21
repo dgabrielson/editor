@@ -21,3 +21,15 @@
     <link rel="stylesheet" type="text/css" href="{% sstatic 'css/editor.css' %}">
 
 {% endblock stylesheets %}
+
+{% block ko_components %}
+	{{ block.super }}
+
+	<template id="component-helplink">
+		<a tabindex="2" class="helplink" data-bind="visible: visible, attr: {href: url, title: topic}, css: {big: big, small: !big}, text: text" target="numbasquickhelp">?</a>
+	</template>
+
+	<template id="component-writemaths">
+		<div data-bind="writemaths: value, preambleCSS: css, wmHeight: height, wmWidth: width"></div>
+	</template>
+{% endblock ko_components %}

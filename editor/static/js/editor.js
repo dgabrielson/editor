@@ -591,8 +591,13 @@ $(document).ready(function() {
 
 			var value = ko.utils.unwrapObservable(valueAccessor) || '';
 
-			var height = allBindingsAccessor.hasOwnProperty('wmHeight') ? allBindingsAccessor.wmHeight : 200;
-			var width = allBindingsAccessor.hasOwnProperty('wmWidth') ? allBindingsAccessor.wmWidth : '';
+			var height = 200, width = '';
+			if('wmHeight' in allBindingsAccessor && allBindingsAccessor.wmHeight!==undefined) {
+				height = ko.unwrap(allBindingsAccessor.wmHeight);
+			}
+			if('wmWidth' in allBindingsAccessor && allBindingsAccessor.wmWidth!==undefined) {
+				width= ko.unwrap(allBindingsAccessor.wmWidth);
+			}
 
 			var preambleCSSAccessor = allBindingsAccessor.preambleCSS;
 
@@ -862,6 +867,27 @@ $(document).ready(function() {
             ko.bindingHandlers.calendarTime.init(element,valueAccessor);
         }
     }
+
+	ko.components.register('writemaths',{
+		viewModel: function(params) {
+			this.value = params.value;
+			this.css = params.css;
+			this.height = params.height;
+			this.width = params.width;
+		},
+		template: {element: 'component-writemaths'}
+	});
+
+	ko.components.register('helplink',{
+		viewModel: function(params) {
+			this.visible = params.url;
+			this.topic = params.topic || 'Help';
+			this.big = params.big;
+			this.text = this.big ? 'Help' : '?';
+			this.url = params.url;
+		},
+		template: {element: 'component-helplink'}
+	});
 
 	ko.components.register('property',{
 		viewModel: function(params) {

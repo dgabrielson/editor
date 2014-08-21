@@ -1041,10 +1041,12 @@ $(document).ready(function() {
 		toJSON: function() {
 			var obj = {
 				name: this.name(),
-				group: this.group().name(),
 				definition: this.definition(),
 				description: this.description(),
 				templateType: this.templateType().id,
+			}
+			if(this.group()) {
+				obj.group = this.group().name;
 			}
 			return obj;
 		},
