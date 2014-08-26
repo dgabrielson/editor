@@ -881,7 +881,7 @@ $(document).ready(function() {
 	ko.components.register('helplink',{
 		viewModel: function(params) {
 			this.visible = params.url;
-			this.topic = params.topic || 'Help';
+			this.topic = params.topic? 'Help on '+params.topic : 'Help';
 			this.big = params.big;
 			this.text = this.big ? 'Help' : '?';
 			this.url = params.url;

@@ -13,8 +13,6 @@
 {% block editor %}
 	{{ block.super }}
 
-	{% include "noneditable.html" %}
-
 	<div class="tab-content">
 		<section class="tab-pane" data-bind="css: {active: ko.utils.unwrapObservable($root.currentTab().id)=='general'}">
 			<div class="row-fluid section">
@@ -34,20 +32,11 @@
 			<div class="row-fluid section">
 				<h4>Options</h4>
 				<form class="form-horizontal">
-					<div class="control-group" data-bind="template: {
-						name: 'selectproperty',
-						data: {label: 'Theme:', property: theme, options: Editor.themes}
-					}"></div>
+					<selectproperty params="label: 'Theme:', value: theme, options: Editor.themes, optionsText: 'niceName'"></selectproperty>
 
-					<div class="control-group" data-bind="visible: Editor.locales.length>1, template: {
-						name: 'selectproperty',
-						data: {label: 'Interface language:', property: locale, options: Editor.locales}
-					}"></div>
+					<selectproperty params="label: 'Interface language:', value: locale, options: Editor.locales, optionsText: 'niceName'"></selectproperty>
 
-					<div class="control-group" data-bind="template: {
-						name: 'percentproperty',
-						data: {label:'Pass threshold:',property:percentPass}
-					}"></div>
+					<percentproperty params="label: 'Pass threshold:',value: percentPass"></percentproperty>
 				</form>
 			</div>
 			<div class="row-fluid">
@@ -65,26 +54,11 @@
 		</section>
 		<section class="tab-pane" data-bind="css: {active: ko.utils.unwrapObservable($root.currentTab().id)=='navigation'}">
 			<form class="form-horizontal">
-				<div class="control-group" data-bind="template: {
-					name: 'booleanproperty',
-					data: {label:'Allow user to regenerate questions?', property:allowregen}
-				}"></div>
-				<div class="control-group" data-bind="template: {
-					name: 'booleanproperty',
-					data: {label:'Allow move to previous question?', property:reverse}
-				}"></div>
-				<div class="control-group" data-bind="template: {
-					name: 'booleanproperty',
-					data: {label:'Allow jump to any question?', property:browse}
-				}"></div>
-				<div class="control-group" data-bind="template: {
-					name: 'booleanproperty',
-					data: {label: 'Show front page?',property:showfrontpage}
-				}"></div>
-				<div class="control-group" data-bind="template: {
-					name: 'booleanproperty',
-					data: {label: 'Confirm before leaving the exam while it\'s running?',property:preventleave}
-				}"></div>
+				<booleanproperty params="label: 'Allow user to regenerate questions?', value: allowregen"></booleanproperty>
+				<booleanproperty params="label: 'Allow move to previous question?', value: reverse"></booleanproperty>
+				<booleanproperty params="label: 'Allow jump to any question?', value: browse"></booleanproperty>
+				<booleanproperty params="label: 'Show front page?',value: showfrontpage"></booleanproperty>
+				<booleanproperty params="label: 'Confirm before leaving the exam while it\'s running?',value: preventleave"></booleanproperty>
 				<div data-bind="template: {
 					name: 'event',
 					data: onleave
@@ -93,14 +67,8 @@
 		</section>
 		<section class="tab-pane" data-bind="css: {active: ko.utils.unwrapObservable($root.currentTab().id)=='timing'}">
 			<form class="form-horizontal">
-				<div class="control-group" data-bind="template: {
-					name: 'numberproperty',
-					data: {label:'Exam duration (minutes):',property:duration, type:'number',min:0}
-				}"></div>
-				<div class="control-group" data-bind="template: {
-					name: 'booleanproperty',
-					data: {label:'Allow pausing?',property:allowPause}
-				}"></div>
+				<numberproperty params="label: 'Exam duration (minutes):',value: duration, type:'number',min:0"></numberproperty>
+				<booleanproperty params="label: 'Allow pausing?',value: allowPause"></booleanproperty>
 				<div data-bind="template: {
 					name: 'event',
 					data: timeout
@@ -113,35 +81,17 @@
 		</section>
 		<section class="tab-pane" data-bind="css: {active: ko.utils.unwrapObservable($root.currentTab().id)=='feedback'}">
 			<form class="form-horizontal">
-				<div class="control-group" data-bind="template: {
-					name: 'booleanproperty',
-					data: { label:'Show current score?', property:showactualmark}
-				}"></div>
-				<div class="control-group" data-bind="template: {
-					name: 'booleanproperty',
-					data: { label:'Show maximum score?', property:showtotalmark}
-				}"></div>
-				<div class="control-group" data-bind="template: {
-					name: 'booleanproperty',
-					data: { label:'Show answer state?', property:showanswerstate}
-				}"></div>
-				<div class="control-group" data-bind="template: {
-					name: 'booleanproperty',
-					data: { label:'Allow reveal answer?', property:allowrevealanswer}
-				}"></div>
-				<div class="control-group" data-bind="template: {
-					name: 'percentproperty',
-					data: { label:'Advice threshold (percent)', property:advicethreshold}
-				}"></div>
+				<booleanproperty params=" label: 'Show current score?', value: showactualmark"></booleanproperty>
+				<booleanproperty params=" label: 'Show maximum score?', value: showtotalmark"></booleanproperty>
+				<booleanproperty params=" label: 'Show answer state?', value: showanswerstate"></booleanproperty>
+				<booleanproperty params=" label: 'Allow reveal answer?', value: allowrevealanswer"></booleanproperty>
+				<percentproperty params=" label: 'Advice threshold (percent)', value: advicethreshold"></percentproperty>
 			</form>
 		</section>
 		<section class="tab-pane" data-bind="css: {active: ko.utils.unwrapObservable($root.currentTab().id)=='questions'}">
 			<div class="row-fluid">
 				<form class="span6 form-horizontal">
-					<div class="control-group" data-bind="template: {
-						name: 'booleanproperty',
-						data: {label: 'Shuffle questions?',property:shuffleQuestions}
-					}"></div>
+					<booleanproperty params="label: 'Shuffle questions?',value: shuffleQuestions"></booleanproperty>
 				</form>
 			</div>
 			<div class="questions row-fluid">
@@ -188,3 +138,8 @@
 	{% endverbatim %}
 
 {% endblock editor %}
+
+{% block ko_components %}
+	{{ block.super }}
+	{% include "noneditable-components.html" %}
+{% endblock ko_components %}
