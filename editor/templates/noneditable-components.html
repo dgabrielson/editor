@@ -6,6 +6,22 @@
 {% endblock stylesheets %}
 
 {% verbatim %}
+	<template id="component-listbox">
+		<div class="control-group">
+			<label>
+				<span class="control-label">
+					<span data-bind="html: label"></span>
+					<helplink params="url: helpURL"></helplink>
+				</span>
+				<div class="controls">
+					<!-- ko foreach: value -->
+					<span class="well well-small" data-bind="text: $data"></span >
+					<!-- /ko -->
+				</div>
+			</label>
+		</div>
+	</template>
+
 	<template id="component-property">
 		<div class="control-group">
 			<label>
@@ -56,7 +72,7 @@
 					<helplink params="url: helpURL"></helplink>
 				</span>
 				<div class="controls">
-					<span class="percentproperty value" data-bind="text: ko.unwrap(property)+'%'"></span>
+					<span class="percentproperty value" data-bind="text: ko.unwrap(value)+'%'"></span>
 				</div>
 			</label>
 		</div>

@@ -351,7 +351,6 @@ Progress: <span data-bind="text: progress()[1], attr: {class: 'progress-display 
 										<label>
 											<span class="control-label">Correct answer <helplink params="url: 'http://numbas-editor.readthedocs.org/en/latest/question-parts.html#term-correct-answer'"></helplink></span>
 											<div class="controls">
-												<input class="monospace" type="text" data-bind="textInput: jme.answer, autosize: {max: 500, min: 30, padding: 10, value: jme.answer}"/>
 												<span data-bind="JME: jme.answer" class="jme-answer"></span>
 											</div>
 										</label>
@@ -419,15 +418,17 @@ Progress: <span data-bind="text: progress()[1], attr: {class: 'progress-display 
 								</form>
 								<h4>Length restriction</h4>
 								<form class="form-horizontal">
-									<div class="control-group" data-bind="template: {
-										name: 'property',
-										data: {label:'Maximum length',property:jme.maxlength.length,min:0}
-									}"></div>
+									<property params="
+										label: 'Maximum length',
+										value: jme.maxlength.length,
+										min:0, 
+										helpURL: 'http://numbas-editor.readthedocs.org/en/latest/question-parts.html#term-maximum-length-restriction'
+									"></property>
 									<div data-bind="fadeVisible: jme.maxlength.length()>0">
-										<div class="control-group" data-bind="template: {
-											name:'percentproperty',
-											data: {label:'Partial credit for long answer',property:jme.maxlength.partialCredit}
-										}"></div>
+										<percentproperty params="
+											label: 'Partial credit for long answer',
+											value: jme.maxlength.partialCredit
+										"></percentproperty>
 										<div class="control-group">
 											<label>
 												<span class="control-label">Warning message</span>
@@ -437,15 +438,17 @@ Progress: <span data-bind="text: progress()[1], attr: {class: 'progress-display 
 									</div>
 								</form>
 								<form class="form-horizontal">
-									<div class="control-group" data-bind="template: {
-										name: 'property',
-										data: {label:'Minimum length',property:jme.minlength.length,min:0}
-									}"></div>
+									<property params="
+										label: 'Minimum length',
+										value: jme.minlength.length,
+										min:0, 
+										helpURL: 'http://numbas-editor.readthedocs.org/en/latest/question-parts.html#term-minimum-length-restriction'
+									"></property>
 									<div data-bind="fadeVisible: jme.minlength.length()>0">
-										<div class="control-group" data-bind="template: {
-											name:'percentproperty',
-											data: {label:'Partial credit for short answer',property:jme.minlength.partialCredit}
-										}"></div>
+										<percentproperty params="
+											label: 'Partial credit for short answer',
+											value:jme.minlength.partialCredit
+										"></percentproperty>
 										<div class="control-group">
 											<label>
 												<span class="control-label">Warning message</span>
@@ -456,25 +459,20 @@ Progress: <span data-bind="text: progress()[1], attr: {class: 'progress-display 
 								</form>
 								<h4>String restriction</h4>
 								<form class="form-horizontal">
-									<div class="control-group">
-										<label>
-											<span class="control-label">Required strings:</span>
-											<div class="controls">
-												<!-- ko foreach: jme.musthave.strings-->
-												<span class="well well-small" data-bind="text: $data"></span >
-												<!-- /ko -->
-											</div>
-										</label>
-									</div>
+									<listbox params="
+										label: 'Required strings',
+										helpURL: 'http://numbas-editor.readthedocs.org/en/latest/question-parts.html#term-required-strings',
+										value: jme.musthave.strings
+									"></listbox>
 									<div data-bind="fadeVisible: jme.musthave.strings().length>0">
-										<div class="control-group" data-bind="template: {
-											name:'percentproperty',
-											data: {label:'Partial credit for not using all required strings:',property:jme.musthave.partialCredit}
-										}"></div>
-										<div class="control-group" data-bind="template: {
-											name: 'booleanproperty',
-											data: {label:'Show required strings in warning?', property:jme.musthave.showStrings}
-										}"></div>
+										<percentproperty params="
+											label: 'Partial credit for not using all required strings',
+											value: jme.musthave.partialCredit
+										"></percentproperty>
+										<booleanproperty params="
+											label: 'Show required strings in warning?', 
+											value: jme.musthave.showStrings
+										"></booleanproperty>
 										<div class="control-group">
 											<label>
 												<span class="control-label">Warning message</span>
@@ -485,25 +483,20 @@ Progress: <span data-bind="text: progress()[1], attr: {class: 'progress-display 
 								</form>
 
 								<form class="form-horizontal">
-									<div class="control-group">
-										<label>
-											<span class="control-label">Forbidden strings:</span>
-											<div class="controls">
-												<!-- ko foreach: jme.notallowed.strings-->
-												<span class="well well-small" data-bind="text: $data"></span >
-												<!-- /ko -->
-											</div>
-										</label>
-									</div>
+									<listbox params="
+										label: 'Forbidden strings',
+										helpURL: 'http://numbas-editor.readthedocs.org/en/latest/question-parts.html#term-forbidden-strings',
+										value: jme.notallowed.strings
+									"></listbox>
 									<div data-bind="fadeVisible: jme.notallowed.strings().length>0">
-										<div class="control-group" data-bind="template: {
-											name:'percentproperty',
-											data: {label:'Partial credit for not using all required strings:',property:jme.notallowed.partialCredit}
-										}"></div>
-										<div class="control-group" data-bind="template: {
-											name: 'booleanproperty',
-											data: {label:'Show required strings in warning?', property:jme.notallowed.showStrings}
-										}"></div>
+										<percentproperty params="
+											label: 'Partial credit for using any forbidden strings',
+											value: jme.notallowed.partialCredit
+										"></percentproperty>
+										<booleanproperty params="
+											label: 'Show required strings in warning?', 
+											value: jme.notallowed.showStrings
+										"></booleanproperty>
 										<div class="control-group">
 											<label>
 												<span class="control-label">Warning message</span>
@@ -514,74 +507,79 @@ Progress: <span data-bind="text: progress()[1], attr: {class: 'progress-display 
 								</form>
 
 								<form class="form-horizontal">
-                                    <div class="control-group" data-bind="template: {
-                                        name: 'booleanproperty',
-                                        data: {label: 'Warn if student uses an unexpected variable name?', property:jme.checkVariableNames}
-                                    }"></div>
-									<div class="control-group" data-bind="fadeVisible:jme.checkVariableNames">
-										<label>
-											<span class="control-label">Expected variable names:</span>
-											<div class="controls">
-												<!-- ko foreach: jme.expectedVariableNames -->
-												<span class="well well-small" data-bind="text: $data"></span >
-												<!-- /ko -->
-											</div>
-										</label>
-									</div>
+									<booleanproperty params="
+										label: 'Warn if student uses an unexpected variable name?', 
+										value: jme.checkVariableNames, 
+										helpURL: 'http://numbas-editor.readthedocs.org/en/latest/question-parts.html#term-warn-if-student-uses-an-unexpected-variable-name'
+									"></booleanproperty>
+									<listbox params="
+										label: 'Expected variable names',
+										helpURL: 'http://numbas-editor.readthedocs.org/en/latest/question-parts.html#term-expected-variable-names',
+										value: jme.expectedVariableNames
+									"></listbox>
 								</form>
 							</section>
 							<!-- /ko -->
 							<!-- ko if: type().name=='numberentry' -->
 							<section class="tab-pane" data-bind="css: {active: ko.utils.unwrapObservable(currentTab().id)=='marking'}">
 								<form class="form-horizontal">
-									<div class="control-group" data-bind="template: {
-										name: 'property',
-										data: {label:'Marks',property:marks,min:0}
-									}"></div>
-									<div class="control-group" data-bind="template: {
-										name: 'property',
-										data: {label:'Penalty for revealing steps',property:stepsPenalty,min:0}
-									}"></div>
-									<div class="control-group" data-bind="template: {
-										name: 'property',
-										data: {label:'Minimum accepted value',property:numberentry.minValue}
-									}"></div>
-									<div class="control-group" data-bind="template: {
-										name: 'property',
-										data: {label:'Maximum accepted value',property:numberentry.maxValue}
-									}"></div>
-									<div class="control-group" data-bind="template: {
-										name: 'booleanproperty',
-										data: {label:'Must the answer be an integer?', property:numberentry.integerAnswer}
-									}"></div>
-									<div class="control-group" data-bind="fadeVisible: numberentry.integerAnswer,
-									template: {
-										name:'percentproperty',
-										data: {label:'Partial credit for non-integer answer',property:numberentry.integerPartialCredit}
-									}"></div>
-									<div class="control-group">
-										<label>
-											<span class="control-label">Precision restriction</span>
-											<div class="controls">
-												<span data-bind="text:numberentry.precisionType().niceName"></span>
-											</div>
-										</label>
-									</div>
-									<div class="control-group" data-bind="fadeVisible: numberentry.precisionType().name!='none',
-									template: {
-										name:'property',
-										data: {label:numberentry.precisionWord,property:numberentry.precision}
-									}"></div>
-									<div class="control-group" data-bind="fadeVisible: numberentry.precisionType().name!='none',
-									template: {
-										name:'booleanproperty',
-										data: {label:'Require trailing zeroes?',property:numberentry.strictPrecision}
-									}"></div>
-									<div class="control-group" data-bind="fadeVisible: numberentry.precisionType().name!='none',
-									template: {
-										name:'percentproperty',
-										data: {label:'Partial credit for wrong precision',property:numberentry.precisionPartialCredit}
-									}"></div>
+									<property params="
+										label: 'Marks',
+										value: marks,
+										min:0, 
+										helpURL: 'http://numbas-editor.readthedocs.org/en/latest/question-parts.html#term-marks'
+									"></property>
+									<property params="
+										label: 'Penalty for revealing steps',
+										value: stepsPenalty, 
+										min:0, 
+										helpURL: 'http://numbas-editor.readthedocs.org/en/latest/question-parts.html#term-penalty-for-revealing-steps'
+									"></property>
+									<property params="
+										label: 'Minimum accepted value',
+										value: numberentry.minValue, 
+										helpURL: 'http://numbas-editor.readthedocs.org/en/latest/question-parts.html#term-minimum-accepted-value'
+									"></property>
+									<property params="
+										label: 'Maximum accepted value',
+										value: numberentry.maxValue, 
+										helpURL: 'http://numbas-editor.readthedocs.org/en/latest/question-parts.html#term-maximum-accepted-value'
+									"></property>
+									<booleanproperty params="
+										label: 'Must the answer be an integer?', 
+										value: numberentry.integerAnswer, 
+										helpURL: 'http://numbas-editor.readthedocs.org/en/latest/question-parts.html#term-must-the-answer-be-an-integer'
+									"></booleanproperty>
+									<booleanproperty params="
+										label:'Show correct answer on reveal?',
+										value: showCorrectAnswer,
+										min:0, 
+										helpURL: 'http://numbas-editor.readthedocs.org/en/latest/question-parts.html#term-show-correct-answer-on-reveal'
+									"></booleanproperty>
+									<div data-bind="fadeVisible: numberentry.integerAnswer"><percentproperty params="
+										label: 'Partial credit for non-integer answer',
+										value: numberentry.integerPartialCredit
+									"></percentproperty></div>
+									<selectproperty params="
+										label: 'Precision restriction',
+										helpURL: 'http://numbas-editor.readthedocs.org/en/latest/question-parts.html#term-precision-restriction',
+										options: numberentry.precisionTypes, 
+										value: numberentry.precisionType, 
+										optionsText: 'niceName'
+									"></selectproperty>
+									<div data-bind="fadeVisible: numberentry.precisionType().name!='none'"><property params="
+										label: numberentry.precisionWord,
+										value: numberentry.precision
+									"></property></div>
+									<div data-bind="fadeVisible: numberentry.precisionType().name!='none'"><booleanproperty params="
+										label: 'Require trailing zeroes?',
+										value: numberentry.strictPrecision, 
+										helpURL: 'http://numbas-editor.readthedocs.org/en/latest/question-parts.html#term-require-trailing-zeroes'
+									"></booleanproperty></div>
+									<div data-bind="fadeVisible: numberentry.precisionType().name!='none'"><percentproperty params="
+										label: 'Partial credit for wrong precision',
+										value: numberentry.precisionPartialCredit
+									"></percentproperty></div>
 									<div class="control-group" data-bind="fadeVisible: numberentry.precisionType().name!='none'">
 										<label>
 											<span class="control-label">Message if wrong precision</span>
@@ -594,67 +592,94 @@ Progress: <span data-bind="text: progress()[1], attr: {class: 'progress-display 
 							<!-- ko if: type().name=='patternmatch' -->
 							<section class="tab-pane" data-bind="css: {active: ko.utils.unwrapObservable(currentTab().id)=='marking'}">
 								<form class="form-horizontal">
-									<div class="control-group" data-bind="template: {
-										name: 'property',
-										data: {label:'Marks',property:marks,min:0}
-									}"></div>
-									<div class="control-group" data-bind="template: {
-										name: 'property',
-										data: {label:'Penalty for revealing steps',property:stepsPenalty,min:0}
-									}"></div>
-									<div class="control-group " data-bind="template: {
-										name: 'property',
-										data: {label:'Answer pattern',property:patternmatch.answer, monospace: true}
-									}"></div>
-									<div class="control-group" data-bind="template: {
-										name: 'property',
-										data: {label:'Display answer',property:patternmatch.displayAnswer}
-									}"></div>
-									<div class="control-group" data-bind="template: {
-										name: 'booleanproperty',
-										data: {label:'Must the answer be in the correct case?', property:patternmatch.caseSensitive}
-									}"></div>
-									<div class="control-group" data-bind="
-									fadeVisible:patternmatch.caseSensitive,
-									template: {
-										name:'percentproperty',
-										data: {label:'Partial credit for answer not matching case',property:patternmatch.partialCredit}
-									}"></div>
+									<property params="
+										label: 'Marks',
+										value: marks,
+										min: 0, 
+										helpURL: 'http://numbas-editor.readthedocs.org/en/latest/question-parts.html#term-marks'
+									"></property>
+									<property data-bind="visible: !parent" params="
+										label: 'Penalty for revealing steps',
+										value: stepsPenalty,
+										min: 0, 
+										helpURL: 'http://numbas-editor.readthedocs.org/en/latest/question-parts.html#term-penalty-for-revealing-steps'
+									"></property>
+									<property params="
+										label: 'Answer pattern',
+										value: patternmatch.answer, 
+										monospace: true, 
+										helpURL: 'http://numbas-editor.readthedocs.org/en/latest/question-parts.html#term-answer-pattern'
+									"></property>
+									<booleanproperty params="
+										label: 'Show correct answer on reveal?',
+										value: showCorrectAnswer,
+										min: 0, 
+										helpURL: 'http://numbas-editor.readthedocs.org/en/latest/question-parts.html#term-show-correct-answer-on-reveal'
+									"></booleanproperty>
+									<div data-bind="fadeVisible: showCorrectAnswer"><property params="
+										label: 'Display answer',
+										value: patternmatch.displayAnswer, 
+										helpURL: 'http://numbas-editor.readthedocs.org/en/latest/question-parts.html#term-display-answer'
+									"></property></div>
+									<booleanproperty params="
+										label: 'Must the answer be in the correct case?', 
+										value: patternmatch.caseSensitive, 
+										helpURL: 'http://numbas-editor.readthedocs.org/en/latest/question-parts.html#term-must-the-answer-be-in-the-correct-case'
+									"></booleanproperty>
+									<div data-bind="fadeVisible:patternmatch.caseSensitive"><percentproperty params="
+										label: 'Partial credit for answer not matching case',
+										value: patternmatch.partialCredit
+									"></percentproperty></div>
 								</form>
 							</section>
 							<!-- /ko -->
 							<!-- ko if: type().name=='1_n_2' -->
 							<section class="tab-pane" data-bind="css: {active: ko.utils.unwrapObservable(currentTab().id)=='marking'}">
 								<form class="form-horizontal">
-									<div class="control-group" data-bind="template: {
-										name: 'property',
-										data: {label:'Minimum marks',property:multiplechoice.minMarks, max:multiplechoice.maxMarks }
-									}"></div>
-									<div class="control-group" data-bind="template: {
-										name: 'property',
-										data: {label:'Maximum marks',property:multiplechoice.maxMarks, min:multiplechoice.minMarks}
-									}"></div>
-									<div class="control-group" data-bind="template: {
-										name: 'property',
-										data: {label:'Penalty for revealing steps',property:stepsPenalty,min:0}
-									}"></div>
-									<div class="control-group" data-bind="template: {
-										name: 'booleanproperty',
-										data: {label:'Shuffle order of choices?', property:multiplechoice.shuffleChoices}
-									}"></div>
-									<div class="control-group" data-bind="fadeVisible: multiplechoice.displayType().name!='dropdown',
-									template: {
-										name: 'property',
-										data: {label:'Number of display columns',property:multiplechoice.displayColumns}
-									}"></div>
-									<div class="control-group" data-bind="template: {
-										name: 'booleanproperty',
-										data: {label: 'Custom marking matrix?', property: multiplechoice.customMarking}
-									}"></div>
-									<div class="control-group" data-bind="fadeVisible: multiplechoice.customMarking, template: {
-										name: 'property',
-										data: {label: 'Custom matrix expression', property: multiplechoice.customMatrix, monospace: true}
-									}"></div>
+									<property params="
+										label: 'Minimum marks',
+										value: multiplechoice.minMarks, 
+										max:multiplechoice.maxMarks, 
+										helpURL: 'http://numbas-editor.readthedocs.org/en/latest/question-parts.html#term-minimum-marks'
+									"></property>
+									<property params="
+										label: 'Maximum marks',
+										value: multiplechoice.maxMarks, 
+										min:multiplechoice.minMarks, 
+										helpURL: 'http://numbas-editor.readthedocs.org/en/latest/question-parts.html#term-maximum-marks'
+									"></property>
+									<booleanproperty params="
+										label: 'Show correct answer on reveal?',
+										value: showCorrectAnswer,
+										min:0, 
+										helpURL: 'http://numbas-editor.readthedocs.org/en/latest/question-parts.html#term-show-correct-answer-on-reveal'
+									"></booleanproperty>
+									<property params="
+										label: 'Penalty for revealing steps',
+										value: stepsPenalty,
+										min:0, 
+										helpURL: 'http://numbas-editor.readthedocs.org/en/latest/question-parts.html#term-penalty-for-revealing-steps'
+									"></property>
+									<booleanproperty params="
+										label: 'Shuffle order of choices?', 
+										value: multiplechoice.shuffleChoices, 
+										helpURL: 'http://numbas-editor.readthedocs.org/en/latest/question-parts.html#term-shuffle-order-of-choices'
+									"></booleanproperty>
+									<div data-bind="fadeVisible: multiplechoice.displayType().name!='dropdown'"><property params="
+										label: 'Number of display columns',
+										value: multiplechoice.displayColumns, 
+										helpURL: 'http://numbas-editor.readthedocs.org/en/latest/question-parts.html#term-number-of-display-columns'
+									"></property></div>
+									<booleanproperty params="
+										label: 'Custom marking matrix?', 
+										value: multiplechoice.customMarking, 
+										helpURL: 'http://numbas-editor.readthedocs.org/en/latest/question-parts.html#term-custom-marking-matrix'
+									"></booleanproperty>
+									<div data-bind="fadeVisible: multiplechoice.customMarking"><property params="
+										label: 'Custom matrix expression', 
+										value: multiplechoice.customMatrix, 
+										helpURL: 'http://numbas-editor.readthedocs.org/en/latest/question-parts.html#term-custom-matrix-expression'
+									"></property></div>
 								</form>
 							</section>
 							<section class="tab-pane" data-bind="css: {active: ko.utils.unwrapObservable(currentTab().id)=='choices'}">
@@ -682,43 +707,62 @@ Progress: <span data-bind="text: progress()[1], attr: {class: 'progress-display 
 							<!-- ko if: type().name=='m_n_2' -->
 							<section class="tab-pane" data-bind="css: {active: ko.utils.unwrapObservable(currentTab().id)=='marking'}">
 								<form class="form-horizontal">
-									<div class="control-group" data-bind="template: {
-										name: 'property',
-										data: {label:'Minimum marks',property:multiplechoice.minMarks, max:multiplechoice.maxMarks }
-									}"></div>
-									<div class="control-group" data-bind="template: {
-										name: 'property',
-										data: {label:'Maximum marks',property:multiplechoice.maxMarks, min:multiplechoice.minMarks}
-									}"></div>
-									<div class="control-group" data-bind="template: {
-										name: 'property',
-										data: {label:'Penalty for revealing steps',property:stepsPenalty,min:0}
-									}"></div>
-									<div class="control-group" data-bind="template: {
-										name: 'property',
-										data: {label:'Minimum answers:',property:multiplechoice.minAnswers, max:multiplechoice.maxAnswers}
-									}"></div>
-									<div class="control-group" data-bind="template: {
-										name: 'property',
-										data: {label:'Maximum answers:',property:multiplechoice.maxAnswers, min:multiplechoice.minAnswers}
-									}"></div>
-									<div class="control-group" data-bind="template: {
-										name: 'booleanproperty',
-										data: {label:'Shuffle order of choices?', property:multiplechoice.shuffleChoices}
-									}"></div>
-									<div class="control-group" data-bind="fadeVisible: multiplechoice.displayType().name!='dropdown',
-									template: {
-										name: 'property',
-										data: {label:'Number of display columns',property:multiplechoice.displayColumns}
-									}"></div>
-									<div class="control-group" data-bind="template: {
-										name: 'booleanproperty',
-										data: {label: 'Custom marking matrix?', property: multiplechoice.customMarking}
-									}"></div>
-									<div class="control-group" data-bind="fadeVisible: multiplechoice.customMarking, template: {
-										name: 'property',
-										data: {label: 'Custom matrix expression', property: multiplechoice.customMatrix, monospace: true}
-									}"></div>
+									<property params="
+										label: 'Minimum marks',
+										value: multiplechoice.minMarks, 
+										max:multiplechoice.maxMarks, 
+										helpURL: 'http://numbas-editor.readthedocs.org/en/latest/question-parts.html#term-minimum-marks'
+									"></property>
+									<property params="
+										label: 'Maximum marks',
+										value: multiplechoice.maxMarks, 
+										min:multiplechoice.minMarks, 
+										helpURL: 'http://numbas-editor.readthedocs.org/en/latest/question-parts.html#term-maximum-marks'
+									"></property>
+									<booleanproperty params="
+										label: 'Show correct answer on reveal?',
+										value: showCorrectAnswer,
+										min:0, 
+										helpURL: 'http://numbas-editor.readthedocs.org/en/latest/question-parts.html#term-show-correct-answer-on-reveal'
+									"></booleanproperty>
+									<property params="
+										label: 'Penalty for revealing steps',
+										value: stepsPenalty,
+										min:0, 
+										helpURL: 'http://numbas-editor.readthedocs.org/en/latest/question-parts.html#term-penalty-for-revealing-steps'
+									"></property>
+									<property params="
+										label: 'Minimum answers:',
+										value: multiplechoice.minAnswers, 
+										max:multiplechoice.maxAnswers,
+										helpURL: 'http://numbas-editor.readthedocs.org/en/latest/question-parts.html#term-minimum-answers'
+									"></property>
+									<property params="
+										label: 'Maximum answers:',
+										property: multiplechoice.maxAnswers, 
+										min:multiplechoice.minAnswers,
+										helpURL: 'http://numbas-editor.readthedocs.org/en/latest/question-parts.html#term-maximum-answers'
+									"></property>
+									<booleanproperty params="
+										label: 'Shuffle order of choices?', 
+										value: multiplechoice.shuffleChoices, 
+										helpURL: 'http://numbas-editor.readthedocs.org/en/latest/question-parts.html#term-shuffle-order-of-choices'
+									"></booleanproperty>
+									<div data-bind="fadeVisible: multiplechoice.displayType().name!='dropdown'"><property params="
+										label: 'Number of display columns',
+										value: multiplechoice.displayColumns, 
+										helpURL: 'http://numbas-editor.readthedocs.org/en/latest/question-parts.html#term-number-of-display-columns'
+									"></property></div>
+									<booleanproperty params="
+										label: 'Custom marking matrix?', 
+										value: multiplechoice.customMarking, 
+										helpURL: 'http://numbas-editor.readthedocs.org/en/latest/question-parts.html#term-custom-marking-matrix'
+									"></booleanproperty>
+									<div data-bind="fadeVisible: multiplechoice.customMarking"><property params="
+										label: 'Custom matrix expression', 
+										value: multiplechoice.customMatrix, 
+										helpURL: 'http://numbas-editor.readthedocs.org/en/latest/question-parts.html#term-custom-matrix-expression'
+									"></property></div>
 								</form>
 							</section>
 							<section class="tab-pane" data-bind="css: {active: ko.utils.unwrapObservable(currentTab().id)=='choices'}">
@@ -744,50 +788,68 @@ Progress: <span data-bind="text: progress()[1], attr: {class: 'progress-display 
 							<!-- ko if: type().name=='m_n_x' -->
 							<section class="tab-pane" data-bind="css: {active: ko.utils.unwrapObservable(currentTab().id)=='marking'}">
 								<form class="form-horizontal">
-									<div class="control-group" data-bind="template: {
-										name: 'property',
-										data: {label:'Minimum marks',property:multiplechoice.minMarks, max:multiplechoice.maxMarks }
-									}"></div>
-									<div class="control-group" data-bind="template: {
-										name: 'property',
-										data: {label:'Maximum marks',property:multiplechoice.maxMarks, min:multiplechoice.minMarks}
-									}"></div>
-									<div class="control-group" data-bind="template: {
-										name: 'property',
-										data: {label:'Penalty for revealing steps',property:stepsPenalty,min:0}
-									}"></div>
-									<div class="control-group" data-bind="template: {
-										name: 'property',
-										data: {label:'Minimum answers:',property:multiplechoice.minAnswers, max:multiplechoice.maxAnswers}
-									}"></div>
-									<div class="control-group" data-bind="template: {
-										name: 'property',
-										data: {label:'Maximum answers:',property:multiplechoice.maxAnswers, min:multiplechoice.minAnswers}
-									}"></div>
-									<div class="control-group" data-bind="template: {
-										name: 'booleanproperty',
-										data: {label:'Shuffle order of choices?', property:multiplechoice.shuffleChoices}
-									}"></div>
-									<div class="control-group" data-bind="template: {
-										name: 'booleanproperty',
-										data: {label:'Shuffle order of answers?', property:multiplechoice.shuffleAnswers}
-									}"></div>
-									<div class="control-group">
-										<label>
-											<span class="control-label">Selection type:</span>
-											<div class="controls">
-												<span data-bind="text:multiplechoice.displayType().niceName"></span>
-											</div>
-										</label>
-									</div>
-									<div class="control-group" data-bind="template: {
-										name: 'booleanproperty',
-										data: {label: 'Custom marking matrix?', property: multiplechoice.customMarking}
-									}"></div>
-									<div class="control-group" data-bind="fadeVisible: multiplechoice.customMarking, template: {
-										name: 'property',
-										data: {label: 'Custom matrix expression', property: multiplechoice.customMatrix, monospace: true}
-									}"></div>
+									<property params="
+										label: 'Minimum marks',
+										value: multiplechoice.minMarks, 
+										max:multiplechoice.maxMarks, 
+										helpURL: 'http://numbas-editor.readthedocs.org/en/latest/question-parts.html#term-minimum-marks'
+									"></property>
+									<property params="
+										label: 'Maximum marks',
+										value: multiplechoice.maxMarks, 
+										min:multiplechoice.minMarks, 
+										helpURL: 'http://numbas-editor.readthedocs.org/en/latest/question-parts.html#term-maximum-marks'
+									"></property>
+									<booleanproperty params="
+										label: 'Show correct answer on reveal?',
+										value: showCorrectAnswer,
+										min:0, 
+										helpURL: 'http://numbas-editor.readthedocs.org/en/latest/question-parts.html#term-show-correct-answer-on-reveal'
+									"></booleanproperty>
+									<property params="
+										label: 'Penalty for revealing steps',
+										value: stepsPenalty,
+										min:0, 
+										helpURL: 'http://numbas-editor.readthedocs.org/en/latest/question-parts.html#term-penalty-for-revealing-steps'
+									"></property>
+									<property params="
+										label: 'Minimum answers:',
+										value: multiplechoice.minAnswers, 
+										max:multiplechoice.maxAnswers,
+										helpURL: 'http://numbas-editor.readthedocs.org/en/latest/question-parts.html#term-minimum-answers'
+									"></property>
+									<property params="
+										label: 'Maximum answers:',
+										property: multiplechoice.maxAnswers, 
+										min:multiplechoice.minAnswers,
+										helpURL: 'http://numbas-editor.readthedocs.org/en/latest/question-parts.html#term-maximum-answers'
+									"></property>
+									<booleanproperty params="
+										label: 'Shuffle order of choices?', 
+										value: multiplechoice.shuffleChoices, 
+										helpURL: 'http://numbas-editor.readthedocs.org/en/latest/question-parts.html#term-shuffle-order-of-choices'
+									"></booleanproperty>
+									<booleanproperty params="
+										label: 'Shuffle order of answers?',
+										value: multiplechoice.shuffleAnswers, 
+										helpURL: 'http://numbas-editor.readthedocs.org/en/latest/question-parts.html#term-shuffle-order-of-answers'
+									"></booleanproperty>
+									<selectproperty params="
+										label: 'Selection type',
+										options: multiplechoice.displayTypes.m_n_x,
+										value: multiplechoice.displayType,
+										optionsText: 'niceName'
+									"></selectproperty>
+									<booleanproperty params="
+										label: 'Custom marking matrix?', 
+										value: multiplechoice.customMarking, 
+										helpURL: 'http://numbas-editor.readthedocs.org/en/latest/question-parts.html#term-custom-marking-matrix'
+									"></booleanproperty>
+									<div data-bind="fadeVisible: multiplechoice.customMarking"><property params="
+										label: 'Custom matrix expression', 
+										value: multiplechoice.customMatrix, 
+										helpURL: 'http://numbas-editor.readthedocs.org/en/latest/question-parts.html#term-custom-matrix-expression'
+									"></property></div>
 								</form>
 							</section>
 							<section class="tab-pane" data-bind="css: {active: ko.utils.unwrapObservable(currentTab().id)=='choices'}">
@@ -838,6 +900,7 @@ Progress: <span data-bind="text: progress()[1], attr: {class: 'progress-display 
 		</section>
 		<section class="tab-pane" data-bind="css: {active: ko.utils.unwrapObservable($root.currentTab().id)=='advice'}">
 			<div data-bind="mathjaxHTML: advice"></div>
+			<div data-bind="if: !advice()" class="nothing-here">No advice.</div>
 		</section>
 		<section class="tab-pane" data-bind="css: {active: ko.utils.unwrapObservable($root.currentTab().id)=='resources'}">
 			<ul class="unstyled resources-list" data-bind="foreach: resources">
