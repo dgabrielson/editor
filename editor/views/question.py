@@ -18,8 +18,6 @@ from copy import deepcopy
 import time
 import calendar
 
-from django.contrib import staticfiles
-
 from django.core.exceptions import ObjectDoesNotExist
 from django.core.urlresolvers import reverse
 from django.db.models import Q
@@ -33,13 +31,14 @@ from django.views.generic.detail import SingleObjectMixin
 from django.views.generic.edit import FormMixin
 from django.template.loader import render_to_string
 from django.conf import settings
+from django.core import serializers
 
 import reversion
 
 from django_tables2.config import RequestConfig
 
 from editor.forms import NewQuestionForm, QuestionForm, QuestionSetAccessForm, QuestionSearchForm, QuestionHighlightForm
-from editor.models import Question,Extension,Image,QuestionAccess,QuestionHighlight,EditorTag
+from editor.models import Question,Extension,Image,QuestionAccess,QuestionHighlight,EditorTag,Licence
 import editor.views.generic
 from editor.views.errors import forbidden
 from editor.views.user import find_users
@@ -184,6 +183,8 @@ class CopyView(generic.View, SingleObjectMixin):
     def get(self, request, *args, **kwargs):
         try:
             q = self.get_object()
+            if not q.can_be_copied_by(request.user):
+                return http.HttpResponseForbidden("You may not copy this question.")
             q2 = deepcopy(q)
             q2.id = None
             q2.author = request.user
@@ -236,6 +237,7 @@ class UpdateView(generic.UpdateView):
         obj = super(UpdateView,self).get_object()
         self.editable = obj.can_be_edited_by(self.request.user)
         self.can_delete = obj.can_be_deleted_by(self.request.user)
+        self.can_copy = obj.can_be_copied_by(self.request.user)
         return obj
 
     def get_template_names(self):
@@ -310,10 +312,11 @@ class UpdateView(generic.UpdateView):
 
         context['editable'] = self.editable
         context['can_delete'] = self.can_delete
+        context['can_copy'] = self.can_copy
         context['navtab'] = 'questions'
 
         if not self.request.user.is_anonymous():
-            context['starred'] = self.request.user.get_profile().favourite_questions.filter(pk=self.object.pk).exists()
+            context['starred'] = self.request.user.userprofile.favourite_questions.filter(pk=self.object.pk).exists()
         else:
             context['starred'] = False
     
@@ -321,11 +324,13 @@ class UpdateView(generic.UpdateView):
 
         versions = [version_json(v,self.user) for v in reversion.get_for_object(self.object)]
 
+        licences = [licence.as_json() for licence in Licence.objects.all()]
+
         question_json = context['question_json'] = {
             'questionJSON': json.loads(self.object.as_json()),
             'editable': self.editable,
 
-            'progresses': self.object.PROGRESS_CHOICES,
+            'licences': licences,
 
             'numbasExtensions': context['extensions'],
 
@@ -339,6 +344,13 @@ class UpdateView(generic.UpdateView):
             question_json['public_access'] = self.object.public_access
             question_json['access_rights'] = context['access_rights']
             context['versions'] = reversion.get_for_object(self.object)
+
+        part_type_path = 'question/part_types/'+('editable' if self.editable else 'noneditable')
+        context['partNames'] = [
+            ( name, '{}/{}.html'.format(part_type_path,name) ) 
+            for name in 
+            'jme','gapfill','numberentry','patternmatch','1_n_2','m_n_2','m_n_x','matrix'
+        ]
 
         return context
     
@@ -408,7 +420,7 @@ class IndexView(generic.TemplateView):
         context = super(IndexView, self).get_context_data(**kwargs)
 
         if self.request.user.is_authenticated():
-            profile = self.request.user.get_profile()
+            profile = self.request.user.userprofile
             context['favourites'] = profile.favourite_questions.all()
             context['recents'] = Question.objects.filter(author=self.request.user).order_by('-last_modified')
         
@@ -465,14 +477,21 @@ class SearchView(ListView):
         if author:
             questions = questions.filter(author__in=find_users(author))
 
-        progress = form.cleaned_data.get('progress')
-        if progress:
-            questions = questions.filter(progress=progress)
-
         tags = form.cleaned_data.get('tags')
         if len(tags):
             for tag in tags:
                 questions = questions.filter(tags__name__in=[tag])
+
+        usage = form.cleaned_data.get('usage')
+        usage_filters = {
+            "any": Q(),
+            "reuse": Q(licence__can_reuse=True),
+            "modify": Q(licence__can_reuse=True, licence__can_modify=True),
+            "sell": Q(licence__can_reuse=True, licence__can_sell=True),
+            "modify-sell": Q(licence__can_reuse=True, licence__can_modify=True, licence__can_sell=True),
+        }
+        if usage in usage_filters:
+            questions = questions.filter(usage_filters[usage])
 
         filter_copies = form.cleaned_data.get('filter_copies')
         if filter_copies:
@@ -484,7 +503,6 @@ class SearchView(ListView):
         
     def get_context_data(self, **kwargs):
         context = super(SearchView, self).get_context_data(**kwargs)
-        context['progresses'] = Question.PROGRESS_CHOICES
         context['form'] = self.form
 
         return context
@@ -493,7 +511,7 @@ class FavouritesView(ListView):
     template_name = 'question/favourites.html'
 
     def get_queryset(self):
-        return self.request.user.get_profile().favourite_questions.all()
+        return self.request.user.userprofile.favourite_questions.all()
 
 class HighlightsView(ListView):
     model = QuestionHighlight
@@ -563,7 +581,7 @@ class SetStarView(generic.UpdateView):
     def post(self, request, *args, **kwargs):
         question = self.get_object()
 
-        profile = request.user.get_profile()
+        profile = request.user.userprofile
         starred = request.POST.get('starred') == 'true'
         if starred:
             profile.favourite_questions.add(question)

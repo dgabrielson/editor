@@ -74,11 +74,11 @@
 	width: 300px;
 }
 
-.search-results col.author {
-	width: 150px;
+.search-results col.licence {
+    width: 100px;
 }
 
-.search-results col.col-progress {
+.search-results col.author {
 	width: 150px;
 }
 
@@ -106,6 +106,17 @@
 }
 .result .description p {
 	margin: 0;
+}
+
+.result .licence {
+    font-size: 0.8em;
+}
+.result .licence a {
+    color: hsl(200,70%,40%);
+}
+.result .licence .no-licence {
+    font-style: italic;
+    color: #888;
 }
 
 .pagination {

@@ -23,7 +23,7 @@ from django.core.urlresolvers import reverse
 from django.db.models import Q
 from django.db import transaction
 from django.forms.models import model_to_dict
-from django.http import Http404, HttpResponse, HttpResponseRedirect, HttpResponseServerError
+from django.http import Http404, HttpResponse, HttpResponseRedirect, HttpResponseServerError, HttpResponseForbidden
 from django import http
 from django.shortcuts import render,redirect
 from django.utils.decorators import method_decorator
@@ -39,7 +39,7 @@ from django_tables2.config import RequestConfig
 
 from editor.forms import ExamForm, NewExamForm, ExamSearchForm,ExamSetAccessForm, ExamSearchForm, ExamHighlightForm
 from editor.tables import ExamTable, ExamHighlightTable
-from editor.models import Exam, Question, ExamAccess, ExamHighlight, Theme
+from editor.models import Exam, Question, ExamAccess, ExamHighlight, Theme, Licence
 import editor.views.generic
 from editor.views.errors import forbidden
 from editor.views.user import find_users
@@ -121,7 +121,7 @@ class CreateView(generic.CreateView):
     def get(self, request, *args, **kwargs):
         self.object = Exam()
         self.object.author = request.user
-        self.object.locale = request.user.get_profile().language
+        self.object.locale = request.user.userprofile.language
         self.object.save()
         return redirect(self.get_success_url())
 
@@ -179,6 +179,8 @@ class CopyView(generic.View, SingleObjectMixin):
     def get(self, request, *args, **kwargs):
         try:
             e = self.get_object()
+            if not e.can_be_copied_by(request.user):
+                return HttpResponseForbidden("You may not copy this exam.")
             e2 = deepcopy(e)
             e2.id = None
             e2.author = request.user
@@ -303,20 +305,24 @@ class UpdateView(generic.UpdateView):
         context['locales'] = sorted([{'name': x[0], 'code': x[1]} for x in settings.GLOBAL_SETTINGS['NUMBAS_LOCALES']],key=operator.itemgetter('name'))
         context['editable'] = self.object.can_be_edited_by(self.request.user)
         context['can_delete'] = self.object.can_be_deleted_by(self.request.user)
+        context['can_copy'] = self.object.can_be_copied_by(self.request.user)
         context['navtab'] = 'exams'
 
         if self.request.user.is_authenticated():
-            profile = self.request.user.get_profile()
+            profile = self.request.user.userprofile
         else:
             profile = None
 
         versions = [version_json(v,self.user) for v in reversion.get_for_object(self.object)]
+
+        licences = [licence.as_json() for licence in Licence.objects.all()]
 
         editor_json = {
             'editable': self.object.can_be_edited_by(self.request.user),
             'examJSON': exam_dict,
             'themes': sorted(context['themes'],key=operator.itemgetter('name')),
             'locales': context['locales'],
+            'licences': licences,
             'previewURL': reverse('exam_preview',args=(self.object.pk,self.object.slug)),
             'previewWindow': str(calendar.timegm(time.gmtime())),
             'versions': versions,
@@ -411,7 +417,7 @@ class IndexView(generic.TemplateView):
         context = super(IndexView, self).get_context_data(**kwargs)
 
         if self.request.user.is_authenticated():
-            profile = self.request.user.get_profile()
+            profile = self.request.user.userprofile
             context['favourites'] = profile.favourite_exams.all()
             context['recents'] = Exam.objects.filter(author=self.request.user).order_by('-last_modified')
         
@@ -461,6 +467,17 @@ class SearchView(ListView):
             authors = find_users(author_term)
             exams = exams.filter(author__in=authors).distinct()
 
+        usage = form.cleaned_data.get('usage')
+        usage_filters = {
+            "any": Q(),
+            "reuse": Q(licence__can_reuse=True),
+            "modify": Q(licence__can_reuse=True, licence__can_modify=True),
+            "sell": Q(licence__can_reuse=True, licence__can_sell=True),
+            "modify-sell": Q(licence__can_reuse=True, licence__can_modify=True, licence__can_sell=True),
+        }
+        if usage in usage_filters:
+            exams = exams.filter(usage_filters[usage])
+
         exams = [e for e in exams if e.can_be_viewed_by(self.request.user)]
 
         return exams
@@ -475,7 +492,7 @@ class FavouritesView(ListView):
     template_name = 'exam/favourites.html'
 
     def get_queryset(self):
-        return self.request.user.get_profile().favourite_exams.all()
+        return self.request.user.userprofile.favourite_exams.all()
 
 class HighlightsView(ListView):
     model = ExamHighlight
@@ -514,7 +531,7 @@ class SetStarView(generic.UpdateView):
     def post(self, request, *args, **kwargs):
         exam = self.get_object()
 
-        profile = request.user.get_profile()
+        profile = request.user.userprofile
         starred = request.POST.get('starred') == 'true'
         if starred:
             profile.favourite_exams.add(exam)

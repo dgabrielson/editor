@@ -27,13 +27,14 @@ except ImportError:
 
 from django.conf import settings
 from django.contrib.auth.models import User
-from django.contrib import staticfiles
+from django.contrib.staticfiles import finders
 from django.core.exceptions import ValidationError
 from django.core.serializers.json import DjangoJSONEncoder
 from django.core.urlresolvers import reverse
 from django.db import models
 from django.db.models import Q
 from django.forms import model_to_dict
+from django.utils.deconstruct import deconstructible
 from uuslug import slugify
 
 import reversion
@@ -61,11 +62,18 @@ class EditorTag(taggit.models.TagBase):
 class TaggedQuestion(taggit.models.GenericTaggedItemBase):
     tag = models.ForeignKey(EditorTag,related_name='tagged_items')
 
-class ControlledObject:
+@deconstructible
+class ControlledObject(object):
 
     def can_be_viewed_by(self,user):
         accept_levels = ('view','edit')
         return (self.public_access in accept_levels) or (user.is_superuser) or (self.author==user) or (self.get_access_for(user) in accept_levels)
+
+    def can_be_copied_by(self,user):
+        if not self.licence or user.is_superuser or self.author==user or self.get_access_for(user)=='edit':
+            return True
+        else:
+            return self.licence.can_reuse and self.licence.can_modify
 
     def can_be_deleted_by(self,user):
         return user == self.author
@@ -73,8 +81,13 @@ class ControlledObject:
     def can_be_edited_by(self, user):
         return self.public_access=='edit' or (user.is_superuser) or (self.author==user) or self.get_access_for(user)=='edit'
 
+    def __eq__(self,other):
+        return True
+
 NUMBAS_FILE_VERSION = 'variables_as_objects'
-class NumbasObject:
+
+@deconstructible
+class NumbasObject(object):
 
     def get_parsed_content(self):
         if self.content:
@@ -96,6 +109,9 @@ class NumbasObject:
             self.content = str(self.parsed_content)
         self.save()
 
+    def __eq__(self,other):
+        return self.content==other.content
+
 #check that the .exam file for an object is valid and defines at the very least a name
 def validate_content(content):
     try:
@@ -112,9 +128,9 @@ class Extension(models.Model):
     public = models.BooleanField(default=False,help_text='Can this extension be seen by everyone?')
     slug = models.SlugField(max_length=200,editable=False,unique=False,default='an-extension')
     author = models.ForeignKey(User,related_name='own_extensions',blank=True,null=True)
-    last_modified = models.DateTimeField(auto_now=True,default=datetime.fromtimestamp(0))
+    last_modified = models.DateTimeField(auto_now=True,default=datetime.utcfromtimestamp(0))
     zipfile_folder = 'user-extensions'
-    zipfile = models.FileField(upload_to=os.path.join(zipfile_folder,'zips'), blank=True,null=True, max_length=255, verbose_name = 'Extension package',help_text='A .zip package containing the extension\'s files')
+    zipfile = models.FileField(upload_to=zipfile_folder+'/zips', blank=True,null=True, max_length=255, verbose_name = 'Extension package',help_text='A .zip package containing the extension\'s files')
 
     def __unicode__(self):
         return self.name
@@ -141,7 +157,7 @@ class Extension(models.Model):
                 return settings.MEDIA_URL+self.zipfile_folder+'/extracted/'+str(self.pk)+'/'+self.location+'/'+filename
         else:
             path = 'js/numbas/extensions/%s/%s.js' % (self.location,self.location)
-            if staticfiles.finders.find(path):
+            if finders.find(path):
                 return settings.STATIC_URL+path
         return None
 
@@ -175,9 +191,9 @@ class Theme( models.Model ):
     public = models.BooleanField(default=False,help_text='Can this theme be seen by everyone?')
     slug = models.SlugField(max_length=200,editable=False,unique=False)
     author = models.ForeignKey(User,related_name='own_themes')
-    last_modified = models.DateTimeField(auto_now=True,default=datetime.fromtimestamp(0))
+    last_modified = models.DateTimeField(auto_now=True,default=datetime.utcfromtimestamp(0))
     zipfile_folder = 'user-themes'
-    zipfile = models.FileField(upload_to=os.path.join(zipfile_folder,'zips'), max_length=255, verbose_name = 'Theme package',help_text='A .zip package containing the theme\'s files')
+    zipfile = models.FileField(upload_to=zipfile_folder+'/zips', max_length=255, verbose_name = 'Theme package',help_text='A .zip package containing the theme\'s files')
 
     def __unicode__(self):
         return self.name
@@ -241,9 +257,44 @@ class QuestionManager(models.Manager):
             given_access = QuestionAccess.objects.filter(access__in=['edit','view'],user=user).values_list('question',flat=True)
             return mine_or_public | self.exclude(mine_or_public_query).filter(pk__in=given_access)
 
+class Licence(models.Model):
+    name = models.CharField(max_length=80,unique=True)
+    short_name = models.CharField(max_length=20,unique=True)
+    can_reuse = models.BooleanField(default=True)
+    can_modify = models.BooleanField(default=True)
+    can_sell = models.BooleanField(default=True)
+    url = models.URLField(blank=True)
+    full_text = models.TextField(blank=True)
+
+    def __unicode__(self):
+        return self.name
+
+    def as_json(self):
+        return {
+                'name': self.name,
+                'short_name': self.short_name,
+                'can_reuse': self.can_reuse,
+                'can_modify': self.can_modify,
+                'can_sell': self.can_sell,
+                'url': self.url,
+                'pk': self.pk,
+        }
+
+class EditorModel(models.Model):
+    class Meta:
+        abstract = True
+
+    licence = models.ForeignKey(Licence,null=True)
+
+    def set_licence(self,licence):
+        NumbasObject.get_parsed_content(self)
+        metadata = self.parsed_content.data.setdefault(u'metadata',{})
+        metadata['licence'] = licence.name
+        self.licence = licence
+        self.content = str(self.parsed_content)
 
 @reversion.register
-class Question(models.Model,NumbasObject,ControlledObject):
+class Question(EditorModel,NumbasObject,ControlledObject):
     
     """Model class for a question.
     
@@ -260,22 +311,14 @@ class Question(models.Model,NumbasObject,ControlledObject):
     filename = models.CharField(max_length=200, editable=False,default='')
     content = models.TextField(blank=True,validators=[validate_content])
     metadata = JSONField(blank=True)
-    created = models.DateTimeField(auto_now_add=True,default=datetime.fromtimestamp(0))
-    last_modified = models.DateTimeField(auto_now=True,default=datetime.fromtimestamp(0))
+    created = models.DateTimeField(auto_now_add=True,default=datetime.utcfromtimestamp(0))
+    last_modified = models.DateTimeField(auto_now=True,default=datetime.utcfromtimestamp(0))
     resources = models.ManyToManyField(Image,blank=True)
     copy_of = models.ForeignKey('self',null=True,related_name='copies',on_delete=models.SET_NULL)
     extensions = models.ManyToManyField(Extension,blank=True)
 
     public_access = models.CharField(default='view',editable=True,choices=PUBLIC_ACCESS_CHOICES,max_length=6)
     access_rights = models.ManyToManyField(User, through='QuestionAccess', blank=True, editable=False,related_name='accessed_questions+')
-
-    PROGRESS_CHOICES = [
-        ('in-progress','Writing in progress'),
-        ('not-for-use','Not for general use'),
-        ('testing','Undergoing testing'),
-        ('ready','Tested and ready to use'),
-    ]
-    progress = models.CharField(max_length=15,editable=True,default='in-progress',choices=PROGRESS_CHOICES)
 
     tags = TaggableManager(through=TaggedQuestion)
 
@@ -293,7 +336,11 @@ class Question(models.Model,NumbasObject,ControlledObject):
 
         self.slug = slugify(self.name)
 
-        self.progress = self.parsed_content.data.get('progress','in-progress')
+        if 'metadata' in self.parsed_content.data:
+            licence_name = self.parsed_content.data['metadata'].get('licence',None)
+        else:
+            licence_name = None
+        self.licence = Licence.objects.filter(name=licence_name).first()
 
         super(Question, self).save(*args, **kwargs)
 
@@ -336,8 +383,6 @@ class Question(models.Model,NumbasObject,ControlledObject):
         obj = {
             'id': self.id, 
             'name': self.name, 
-            'progress': self.progress,
-            'progressDisplay': self.get_progress_display(),
             'metadata': self.metadata,
             'created': str(self.created),
             'last_modified': str(self.last_modified), 
@@ -375,10 +420,10 @@ class QuestionHighlight(models.Model):
     question = models.ForeignKey(Question)
     picked_by = models.ForeignKey(User)
     note = models.TextField(blank=True)
-    date = models.DateTimeField(auto_now_add=True,default=datetime.fromtimestamp(0))
+    date = models.DateTimeField(auto_now_add=True,default=datetime.utcfromtimestamp(0))
 
 @reversion.register
-class Exam(models.Model,NumbasObject,ControlledObject):
+class Exam(EditorModel,NumbasObject,ControlledObject):
     
     """Model class for an Exam.
     
@@ -396,8 +441,8 @@ class Exam(models.Model,NumbasObject,ControlledObject):
     author = models.ForeignKey(User,related_name='own_exams')
     filename = models.CharField(max_length=200, editable=False,default='')
     content = models.TextField(blank=True, validators=[validate_content])
-    created = models.DateTimeField(auto_now_add=True,default=datetime.fromtimestamp(0))
-    last_modified = models.DateTimeField(auto_now=True,default=datetime.fromtimestamp(0))
+    created = models.DateTimeField(auto_now_add=True,default=datetime.utcfromtimestamp(0))
+    last_modified = models.DateTimeField(auto_now=True,default=datetime.utcfromtimestamp(0))
     metadata = JSONField(blank=True)
 
     public_access = models.CharField(default='view',editable=True,choices=PUBLIC_ACCESS_CHOICES,max_length=6)
@@ -444,6 +489,12 @@ class Exam(models.Model,NumbasObject,ControlledObject):
         NumbasObject.get_parsed_content(self)
         
         self.slug = slugify(self.name)
+
+        if 'metadata' in self.parsed_content.data:
+            licence_name = self.parsed_content.data['metadata'].get('licence',None)
+        else:
+            licence_name = None
+        self.licence = Licence.objects.filter(name=licence_name).first()
             
         super(Exam, self).save(*args, **kwargs)
 
@@ -512,7 +563,7 @@ class ExamHighlight(models.Model):
     exam = models.ForeignKey(Exam)
     picked_by = models.ForeignKey(User)
     note = models.TextField(blank=True)
-    date = models.DateTimeField(auto_now_add=True,default=datetime.fromtimestamp(0))
+    date = models.DateTimeField(auto_now_add=True,default=datetime.utcfromtimestamp(0))
 
 class ExamAccess(models.Model):
     exam = models.ForeignKey(Exam)

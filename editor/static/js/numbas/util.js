@@ -255,6 +255,37 @@ var util = Numbas.util = /** @lends Numbas.util */ {
 		return parseFloat(f)==f;
 	},
 
+	/** Is `n` a number? i.e. `!isNaN(n)`, or is `n` "infinity", or if `allowFractions` is true, is `n` a fraction?
+	 * @param {number} n
+	 * @param {boolean} allowFractions
+	 * @returns {boolean}
+	 */
+	isNumber: function(n,allowFractions) {
+		if(!isNaN(n)) {
+			return true;
+		}
+		n = n.toString().trim();
+		if(/-?infinity/i.test(n)) {
+			return true;
+		} else if(allowFractions && util.re_fraction.test(n)) {
+			return true;
+		} else {
+			return false;
+		}
+	},
+
+	/** Wrap a list index so -1 maps to length-1
+	 * @param {number} n
+	 * @param {number} size
+	 * @returns {number}
+	 */
+	wrapListIndex: function(n,size) {
+		if(n<0) {
+			n += size;
+		}
+		return n;
+	},
+
 	/** Test if parameter is a boolean - that is: a boolean literal, or any of the strings 'false','true','yes','no', case-insensitive.
 	 * @param {object} b
 	 * @returns {boolean}
@@ -288,6 +319,30 @@ var util = Numbas.util = /** @lends Numbas.util */ {
 			return false;
 		b = b.toString().toLowerCase();
 		return( b=='true' || b=='yes' );
+	},
+
+	/** Regular expression recognising a fraction */
+	re_fraction: /^\s*(-?)\s*(\d+)\s*\/\s*(\d+)\s*/,
+
+	/** Parse a number - either parseFloat, or parse a fraction
+	 * @param {string} s
+	 * @returns {number}
+	 */
+	parseNumber: function(s,allowFractions) {
+		s = s.toString().trim();
+		var m;
+		if(util.isFloat(s)) {
+			return parseFloat(s);
+		} else if(s.toLowerCase()=='infinity') {
+			return Infinity;
+		} else if(s.toLowerCase()=='-infinity') {
+			return -Infinity;
+		} else if(allowFractions && (m = util.re_fraction.exec(s))) {
+			var n = parseInt(m[2])/parseInt(m[3]);
+			return m[1] ? -n : n;
+		} else {
+			return NaN;
+		}
 	},
 
 	/** Pad string `s` on the left with a character `p` until it is `n` characters long.
@@ -496,6 +551,25 @@ var util = Numbas.util = /** @lends Numbas.util */ {
 		return out;
 	},
 
+	/** Zip lists together: given lists [a,b,c,...], [x,y,z,...], return [[a,x],[b,y],[c,z], ...]
+	 * @param {array} lists - list of arrays
+	 * @returns {array}
+	 */
+	zip: function(lists) {
+		var out = [];
+		for(var i=0;true;i++) {
+			var z = [];
+			for(var j=0;j<lists.length;j++) {
+				if(i<lists[j].length) {
+					z.push(lists[j][i]);
+				} else {
+					return out;
+				}
+			}
+			out.push(z);
+		}
+	},
+
 	/** All combinations of r items from given array, without replacement
 	 * @param {array} list
 	 * @param {number} r
@@ -612,7 +686,7 @@ var endDelimiters = {
     '$$': /[^\\]\$\$/,
     '\\[': /[^\\]\\\]/
 }
-var re_startMaths = /(?:^|[^\\])\$\$|(?:^|[^\\])\$|\\\(|\\\[|\\begin\{(\w+)\}/;
+var re_startMaths = /(^|[^\\])(?:\$\$|\$)|\\\(|\\\[|\\begin\{(\w+)\}/;
 
 /** Split a string up by TeX delimiters (`$`, `\[`, `\]`)
  *
@@ -649,6 +723,10 @@ var contentsplitbrackets = util.contentsplitbrackets = function(txt,re_end) {
 			
 			startChop = start+startDelimiter.length;
 			startText = txt.slice(0,start);
+			if(m[1]) {
+				startText += m[1];
+				startDelimiter = startDelimiter.slice(m[1].length);
+			}
 			txt = txt.slice(startChop);
 
 			if(startDelimiter.match(/^\\begin/m)) {    //if this is an environment, construct a regexp to find the corresponding \end{} command.

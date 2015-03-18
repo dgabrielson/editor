@@ -18,6 +18,15 @@ var viewModel;
 $(document).ready(function() {
 	var builtinRulesets = ['basic','unitFactor','unitPower','unitDenominator','zeroFactor','zeroTerm','zeroPower','noLeadingMinus','collectNumbers','simplifyFractions','zeroBase','constantsFirst','sqrtProduct','sqrtDivision','sqrtSquare','trig','otherNumbers']
 
+	var jmeTypes = [];
+	var forbiddenJmeTypes = ['op','name','function'];
+	for(var type in Numbas.jme.types) {
+		var t = Numbas.jme.types[type].prototype.type;
+		if(t && jmeTypes.indexOf(t)==-1 && forbiddenJmeTypes.indexOf(t)==-1) {
+			jmeTypes.push(t);
+		}
+	}
+
     function Question(data)
     {
 		var q = this;
@@ -62,6 +71,16 @@ $(document).ready(function() {
 
 		this.exams = data.exams;
 
+        Editor.licences.sort(function(a,b){a=a.short_name;b=b.short_name; return a<b ? -1 : a>b ? 1 : 0 });
+        this.licence = ko.observable();
+        this.licence_name = ko.computed(function() {
+            if(this.licence()) {
+                return this.licence().name;
+            } else {
+                return 'None specified';
+            }
+        },this);
+
 		this.resources = ko.observableArray([]);
 		this.saveResources = ko.computed(function() {
 			var resources = this.resources();
@@ -76,8 +95,6 @@ $(document).ready(function() {
 			}
 			return out;
 		},this);
-
-		this.progress = ko.observable(Editor.progresses[0]);
 
 		var isadvanced = this.isadvanced = ko.observable(true);
 
@@ -125,7 +142,8 @@ $(document).ready(function() {
 		this.metadata = ko.computed(function() {
 			return {
 				notes: this.notes(),
-				description: this.description()
+				description: this.description(),
+                licence: this.licence_name()
 			};
 		},this);
 
@@ -222,7 +240,9 @@ $(document).ready(function() {
 
 		this.variableTabs = ko.observableArray([
 			new Editor.Tab('definitions','Definitions'),
-			new Editor.Tab('test','Testing')
+			new Editor.Tab('test',ko.computed(function() {
+				return 'Testing' + (q.variablesTest.condition().trim() ? ' (active)' : '');
+			}))
 		]);
 		this.currentVariableTab = ko.observable(this.variableTabs()[0]);
 
@@ -295,7 +315,6 @@ $(document).ready(function() {
                     content: this.output(),
 					extensions: this.usedExtensions().map(function(e){return e.pk}),
                     tags: this.tags(),
-					progress: this.progress()[0],
 					resources: this.saveResources(),
                     metadata: this.metadata()
                 };
@@ -424,7 +443,7 @@ $(document).ready(function() {
 				if(path.length>1) {
 					switch(path[1]) {
 						case 'gap':
-							part = part.gapfill.gaps()[path[2]];
+							part = part.gaps()[path[2]];
 							break;
 						case 'step':
 							part = part.steps()[path[2]];
@@ -437,7 +456,7 @@ $(document).ready(function() {
 				var p = this.currentPart();
 				if(p.isGap()) {
 					var parentPart = p.parent();
-					return [this.parts().indexOf(parentPart), 'gap', parentPart.gapfill.gaps().indexOf(p)];
+					return [this.parts().indexOf(parentPart), 'gap', parentPart.gaps().indexOf(p)];
 				} else if(p.isStep()) {
 					var parentPart = p.parent();
 					return [this.parts().indexOf(parentPart), 'step', parentPart.steps().indexOf(p)];
@@ -520,7 +539,6 @@ $(document).ready(function() {
 				copy_of: Editor.questionJSON.copy_of,
 				extensions: this.usedExtensions().map(function(e){return e.pk}),
 				tags: this.tags(),
-				progress: this.progress()[0],
 				resources: this.saveResources(),
 				metadata: this.metadata()
 			};
@@ -655,7 +673,7 @@ $(document).ready(function() {
 			// fill in observables
 			if(runs<maxRuns) {
 				this.variables().map(function(v) {
-					var name = v.name();
+					var name = v.name().toLowerCase();
 					var result = results.variables[name];
 					if('value' in result) {
 						v.value(result.value);
@@ -805,6 +823,9 @@ $(document).ready(function() {
 				};
 
 				var suggestedRuns = Math.ceil(Math.log(1/1000)/Math.log(probFail));
+				if(suggestedRuns<1) {
+					suggestedRuns = 1;
+				}
 				var probSucceedInTime = 1-Math.pow(probFail,1/timePerRun);
 
 				function round(n,precision) {
@@ -889,7 +910,6 @@ $(document).ready(function() {
             return {
                 name: this.realName(),
                 tags: this.tags(),
-				progress: this.progress()[0],
                 metadata: this.metadata(),
                 statement: this.statement(),
                 advice: this.advice(),
@@ -935,15 +955,13 @@ $(document).ready(function() {
 
 			if('metadata' in data) {
 				tryLoad(data.metadata,['notes','description'],this);
-			}
-
-			if('progress' in data) {
-				for(var i=0;i<Editor.progresses.length;i++) {
-					if(Editor.progresses[i][0]==data.progress) {
-						this.progress(Editor.progresses[i]);
-						break;
-					}
-				}
+                var licence_name = data.metadata.licence;
+                for(var i=0;i<Editor.licences.length;i++) {
+                    if(Editor.licences[i].name==licence_name) {
+                        this.licence(Editor.licences[i]);
+                        break;
+                    }
+                }
 			}
 
 			if('extensions' in data) {
@@ -1083,16 +1101,20 @@ $(document).ready(function() {
 				.css({
 					width: this.imageModal.width(), 
 					height: this.imageModal.height()
-				})
+				});
+			
+			$(this.imageModal.selectedNode)
                 .removeAttr('data-mce-style')
+			$(this.imageModal.selectedNode)
 				.attr('alt',this.imageModal.alt())
+			$(this.imageModal.selectedNode)
 				.attr('title',this.imageModal.title())
 			;
 
 			$('#imageAttributeModal').modal('hide');
 
             var ed = viewModel.currentTinyMCE;
-			ed.onChange.dispatch();
+			ed.fire('change');
 		},
 
 		changeIframeAttributes: function() {
@@ -1332,7 +1354,7 @@ $(document).ready(function() {
 				var wrapValue = Numbas.jme.wrapValue;
 				switch(templateType) {
 				case 'anything':
-					return val.definition();
+					return val.definition()+'';
 				case 'number':
 					return treeToJME({tok: wrapValue(parseFloat(val.value()))});
 				case 'range':
@@ -1494,7 +1516,7 @@ $(document).ready(function() {
 
     function CustomFunction(q,data) {
         this.name = ko.observable('');
-        this.types = ['number','string','boolean','vector','matrix','list','name','function','op','range','html','?'];
+        this.types = jmeTypes;
         this.parameters = ko.observableArray([])
         this.type = ko.observable('number');
         this.definition = ko.observable('');
@@ -1558,10 +1580,21 @@ $(document).ready(function() {
 
     function Part(q,parent,parentList,data) {
 
+		var p = this;
 		this.q = q;
         this.prompt = Editor.contentObservable('');
         this.parent = ko.observable(parent);
 		this.parentList = parentList;
+
+		this.types = partTypes.map(function(data){return new PartType(p,data);});
+
+		this.isGap = ko.computed(function(){
+			return this.parent() && this.parent().type().name=='gapfill' && !this.parent().steps().contains(this);
+		},this);
+
+		this.isStep = ko.computed(function() {
+			return this.parent() && this.parent().steps().contains(this);
+		},this);
 
 		var nonGapTypes = ['information','gapfill'];
 		this.availableTypes = ko.computed(function() {
@@ -1588,7 +1621,7 @@ $(document).ready(function() {
 			else {
 				i= 'abcdefghijklmnopqrstuvwxyz'[i]+') ';
 			}
-			return i+this.type().niceName;
+			return i;
 		},this);
 
 		this.tabs = ko.computed(function() {
@@ -1635,6 +1668,14 @@ $(document).ready(function() {
         this.steps = ko.observableArray([]);
         this.stepsPenalty = ko.observable(0);
 
+		this.gaps = ko.observableArray([]);
+		this.addGap = function() {
+			var gap = new Part(p.q,p,p.gaps);
+			p.gaps.push(gap);
+			p.q.currentPart(gap);
+		}
+
+
 		this.showCorrectAnswer = ko.observable(true);
 
 		this.scripts = [
@@ -1643,127 +1684,13 @@ $(document).ready(function() {
 			new Script('validate','Validate student\'s answer','http://numbas-editor.readthedocs.org/en/latest/question-parts.html#term-validate-student-s-answer')
 		];
 
-        this.jme = {
-            answer: ko.observable(''),
-            answerSimplification: ko.observable(''),
-			showPreview: ko.observable(true),
-            checkingTypes: [
-                {name:'absdiff',niceName:'Absolute difference', accuracy: ko.observable(0.001)},
-                {name:'reldiff',niceName:'Relative difference', accuracy: ko.observable(0.001)},
-                {name:'dp',niceName:'Decimal points', accuracy: ko.observable(3)},
-                {name:'sigfig',niceName:'Significant figures', accuracy: ko.observable(3)}
-            ],
-            failureRate: ko.observable(1),
-            vset: {
-                points: ko.observable(5),
-                start: ko.observable(0),
-                end: ko.observable(1)
-            },
-            maxlength: {
-                length: ko.observable(0),
-                partialCredit: ko.observable(0),
-                message: Editor.contentObservable('')
-            },
-            minlength: {
-                length: ko.observable(0),
-                partialCredit: ko.observable(0),
-                message: Editor.contentObservable('')
-            },
-            musthave: {
-                strings: ko.observableArray([]),
-                showStrings: ko.observable(false),
-                partialCredit: ko.observable(0),
-                message: Editor.contentObservable('')
-            },
-            notallowed: {
-                strings: ko.observableArray([]),
-                showStrings: ko.observable(false),
-                partialCredit: ko.observable(0),
-                message: Editor.contentObservable('')
-            },
-            checkVariableNames: ko.observable(false),
-			expectedVariableNames: ko.observableArray([])
-        };
-        this.jme.checkingType = ko.observable(this.jme.checkingTypes[0]);
-
-        this.numberentry = {
-            minValue: ko.observable(''),
-			maxValue: ko.observable(''),
-            integerAnswer: ko.observable(false),
-            integerPartialCredit: ko.observable(0),
-			precisionTypes: [
-				{name: 'none', niceName: 'None'},
-				{name: 'dp', niceName: 'Decimal places'},
-				{name: 'sigfig', niceName: 'Significant figures'}
-			],
-			precision: ko.observable(0),
-			precisionPartialCredit: ko.observable(0),
-			precisionMessage: ko.observable('You have not given your answer to the correct precision.'),
-			strictPrecision: ko.observable(true)
-        };
-		this.numberentry.precisionType = ko.observable(this.numberentry.precisionTypes[0]);
-		this.numberentry.precisionWord = ko.computed(function() {
-			switch(this.precisionType().name) {
-			case 'dp':
-				return 'Digits';
-			case 'sigfig':
-				return 'Significant figures';
-			}
-		},this.numberentry);
-
-        this.patternmatch = {
-            answer: ko.observable(''),
-            displayAnswer: Editor.contentObservable(''),
-            caseSensitive: ko.observable(false),
-            partialCredit: ko.observable(0)
-        };
-
-        this.multiplechoice = {
-            minMarks: ko.observable(0),
-            maxMarks: ko.observable(0),
-            minAnswers: ko.observable(0),
-            maxAnswers: ko.observable(0),
-            shuffleChoices: ko.observable(false),
-            shuffleAnswers: ko.observable(false),
-            displayColumns: ko.observable(0),
-            displayType:ko.observable(''),
-			customMarking: ko.observable(false),
-			customMatrix: ko.observable(''),
-			warningType: ko.observable(''),
-
-			warningTypes: [
-				{name: 'none', niceName: 'Do nothing'},
-				{name: 'warn', niceName: 'Warn'},
-				{name: 'prevent', niceName: 'Prevent submission'}
-			],
-            displayTypes: {
-                'm_n_x': [
-                    {name: 'radiogroup', niceName: 'One from each row'},
-                    {name: 'checkbox', niceName: 'Checkboxes'}
-                ],
-                'm_n_2': [
-                    {name: 'checkbox', niceName: 'Checkboxes'},
-                    {name:'dropdown', niceName: 'Drop-down box'}
-                ],
-                '1_n_2': [
-                    {name:'radiogroup', niceName: 'Radio boxes'},
-                    {name:'dropdown', niceName: 'Drop-down box'}
-                ]
-            },
-
-            choices: ko.observableArray([]),
-            answers: ko.observableArray([])
-        }
-
-        this.gapfill = {
-            gaps: ko.observableArray([])
-        };
+		this.types.map(function(t){p[t.name] = t.model});
 
 		this.meOrChildSelected = ko.computed(function() {
 			var currentPart = q.currentPart();
 			if(currentPart==this)
 				return true;
-			var children = this.gapfill.gaps().concat(this.steps());
+			var children = this.gaps().concat(this.steps());
 			for(var i=0;i<children.length;i++) {
 				if(currentPart==children[i])
 					return true;
@@ -1775,64 +1702,6 @@ $(document).ready(function() {
             this.load(data);
     }
     Part.prototype = {
-        types: [
-            {
-				name: 'information', 
-				niceName: 'Information only', 
-				tabs: []
-			},
-            {
-				name: 'gapfill', 
-				niceName: 'Gap-fill', 
-				has_marks: true,
-				tabs: [
-				]
-			},
-            {
-				name:'jme', 
-				niceName: 'Mathematical expression', 
-				has_marks: true, 
-				tabs: [
-					new Editor.Tab('restrictions','Accuracy and string restrictions')
-				]
-			},
-            {
-				name:'numberentry', 
-				niceName: 'Number entry', 
-				has_marks: true,
-				tabs: []
-			},
-            {
-				name:'patternmatch', 
-				niceName: 'Match text pattern', 
-				has_marks: true,
-				tabs: []
-			},
-            {
-				name:'1_n_2', 
-				niceName: 'Choose one from a list',
-				tabs: [
-					new Editor.Tab('marking','Marking'),
-					new Editor.Tab('choices','Choices')
-				]
-			},
-            {
-				name:'m_n_2', 
-				niceName: 'Choose several from a list',
-				tabs: [
-					new Editor.Tab('marking','Marking'),
-					new Editor.Tab('choices','Choices')
-				]
-			},
-            {
-				name:'m_n_x', 
-				niceName: 'Match choices with answers',
-				tabs: [
-					new Editor.Tab('choices','Marking matrix'),
-					new Editor.Tab('marking','Marking options')
-				]
-			}
-        ],
 
 		copy: function() {
 			var data = this.toJSON();
@@ -1846,12 +1715,19 @@ $(document).ready(function() {
 			gapFill.setType('gapfill');
 
 			this.parentList.splice(this.parentList.indexOf(this),1,gapFill);
-			gapFill.gapfill.gaps.push(this);
-			this.parentList = gapFill.gapfill.gaps;
+			gapFill.gaps.push(this);
+			this.parentList = gapFill.gaps;
 			this.parent(gapFill);
 			
 			gapFill.prompt(this.prompt()+'\n<p>[[0]]</p>');
 			this.prompt('');
+
+			gapFill.steps(this.steps());
+			gapFill.steps().map(function(step){ 
+				step.parent(gapFill);
+				step.parentList = gapFill.steps;
+			});
+			this.steps([]);
 		},
 
 		canMove: function(direction) {
@@ -1868,70 +1744,6 @@ $(document).ready(function() {
 			var step = new Part(this.q,this,this.steps);
             this.steps.push(step);
 			this.q.currentPart(step);
-        },
-
-        addGap: function() {
-			var gap = new Part(this.q,this,this.gapfill.gaps);
-            this.gapfill.gaps.push(gap);
-			this.q.currentPart(gap);
-        },
-
-        addChoice: function() {
-            var c = {
-                content: Editor.contentObservable('Choice '+(this.multiplechoice.choices().length+1)),
-                marks: ko.observable(0),
-                distractor: Editor.contentObservable(''),
-                answers: ko.observableArray([])
-            };
-            var p = this;
-            c.remove = function() {
-                p.removeChoice(c);
-            }
-
-            //add a marks observable for each answer
-            for(var i=0;i<this.multiplechoice.answers().length;i++)
-            {
-                c.answers.push({
-                    marks: ko.observable(0),
-                    distractor: ko.observable('')
-                });
-            }
-
-            this.multiplechoice.choices.push(c);
-            return c;
-        },
-
-        removeChoice: function(choice) {
-            this.multiplechoice.choices.remove(choice);
-        },
-
-        addAnswer: function() {
-            var a = {
-                content: ko.observable('Answer '+(this.multiplechoice.answers().length+1))
-            };
-            var p = this;
-            a.remove = function() {
-                p.removeAnswer(a);
-            }
-
-            for(var i=0;i<this.multiplechoice.choices().length;i++)
-            {
-                this.multiplechoice.choices()[i].answers.push({
-                    marks: ko.observable(0),
-                    distractor: ko.observable('')
-                });
-            }
-            this.multiplechoice.answers.push(a);
-            return a;
-        },
-
-        removeAnswer: function(answer) {
-            var n = this.multiplechoice.answers.indexOf(answer);
-            for(var i=0;i<this.multiplechoice.choices().length;i++)
-            {
-                this.multiplechoice.choices()[i].answers.splice(n,1);
-            }
-            this.multiplechoice.answers.remove(answer);
         },
 
 		remove: function() {
@@ -1956,14 +1768,6 @@ $(document).ready(function() {
 			var i = this.parentList.indexOf(this);
 			this.parentList.remove(this);
 			this.parentList.splice(i+1,0,this);
-		},
-
-		isGap: function() {
-			return this.parent() && this.parent().type().name=='gapfill' && !this.parent().steps().contains(this);
-		},
-
-		isStep: function() {
-			return this.parent() && this.parent().steps().contains(this);
 		},
 
 		setType: function(name) {
@@ -2000,140 +1804,13 @@ $(document).ready(function() {
 				}
 			});
 
-            switch(this.type().name)
-            {
-            case 'gapfill':
-                if(this.gapfill.gaps().length)
-                {
-                    o.gaps = this.gapfill.gaps().map(function(g) {
-                        return g.toJSON();
-                    },this);
-                }
-                break;
-            case 'jme':
-                o.answer = this.jme.answer();
-                if(this.jme.answerSimplification())
-                    o.answersimplification = this.jme.answerSimplification();
-				o.showpreview = this.jme.showPreview();
-                o.checkingtype = this.jme.checkingType().name;
-                o.checkingaccuracy = this.jme.checkingType().accuracy();
-                o.vsetrangepoints = this.jme.vset.points();
-                o.vsetrange = [this.jme.vset.start(),this.jme.vset.end()];
-                o.checkvariablenames = this.jme.checkVariableNames();
-				o.expectedvariablenames = this.jme.expectedVariableNames();
-                if(this.jme.maxlength.length())
-                {
-                    o.maxlength = {
-                        length: this.jme.maxlength.length(),
-                        partialCredit: this.jme.maxlength.partialCredit(),
-                        message: this.jme.maxlength.message()
-                    };
-                }
-                if(this.jme.minlength.length())
-                {
-                    o.minlength = {
-                        length: this.jme.minlength.length(),
-                        partialCredit: this.jme.minlength.partialCredit(),
-                        message: this.jme.minlength.message()
-                    };
-                }
-                if(this.jme.musthave.strings().length)
-                {
-                    o.musthave = {
-                        strings: this.jme.musthave.strings(),
-                        showStrings: this.jme.musthave.showStrings(),
-                        partialCredit: this.jme.musthave.partialCredit(),
-                        message: this.jme.musthave.message()
-                    };
-                }
-                if(this.jme.notallowed.strings().length)
-                {
-                    o.notallowed = {
-                        strings: this.jme.notallowed.strings(),
-                        showStrings: this.jme.notallowed.showStrings(),
-                        partialCredit: this.jme.notallowed.partialCredit(),
-                        message: this.jme.notallowed.message()
-                    };
-                }
-                break;
-            case 'numberentry':
-                o.minValue = this.numberentry.minValue();
-                o.maxValue = this.numberentry.maxValue();
-                if(this.numberentry.integerAnswer())
-                {
-                    o.integerAnswer = this.numberentry.integerAnswer();
-                    o.integerPartialCredit= this.numberentry.integerPartialCredit();
-                }
-				if(this.numberentry.precisionType().name!='none') {
-					o.precisionType = this.numberentry.precisionType().name;
-					o.precision = this.numberentry.precision();
-					o.precisionPartialCredit = this.numberentry.precisionPartialCredit();
-					o.precisionMessage = this.numberentry.precisionMessage();
-					o.strictPrecision = this.numberentry.strictPrecision();
-				}
-                break;
-            case 'patternmatch':
-                o.answer = this.patternmatch.answer();
-                o.displayAnswer = this.patternmatch.displayAnswer();
-                if(this.patternmatch.caseSensitive())
-                {
-                    o.caseSensitive = this.patternmatch.caseSensitive();
-                    o.partialCredit = this.patternmatch.partialCredit();
-                }
-                break;
-            case 'm_n_x':
-                o.minMarks = this.multiplechoice.minMarks();
-                o.maxMarks = this.multiplechoice.maxMarks();
-                o.minAnswers = this.multiplechoice.minAnswers();
-                o.maxAnswers = this.multiplechoice.maxAnswers();
-                o.shuffleChoices = this.multiplechoice.shuffleChoices();
-                o.shuffleAnswers = this.multiplechoice.shuffleAnswers();
-                o.displayType = this.multiplechoice.displayType().name;
-				o.warningType = this.multiplechoice.warningType().name;
-
-                var matrix = [];
-                var choices = this.multiplechoice.choices();
-                o.choices = choices.map(function(c){return c.content()});
-				for(var i=0;i<choices.length;i++)
-					matrix.push(choices[i].answers().map(function(a){return a.marks();}));
-
-				if(this.multiplechoice.customMarking())
-					o.matrix = this.multiplechoice.customMatrix();
-				else
-					o.matrix = matrix;
-
-                var answers = this.multiplechoice.answers();
-                o.answers = answers.map(function(a){return a.content()});
-                break;
-            case '1_n_2':
-            case 'm_n_2':
-                o.minMarks = this.multiplechoice.minMarks();
-                o.maxMarks = this.multiplechoice.maxMarks();
-                o.shuffleChoices = this.multiplechoice.shuffleChoices();
-                o.displayType = this.type().name=='1_n_2' ? 'radiogroup' : 'checkbox';
-                o.displayColumns = this.multiplechoice.displayColumns();
-                o.minAnswers = this.multiplechoice.minAnswers();
-                o.maxAnswers = this.multiplechoice.maxAnswers();
-				o.warningType = this.multiplechoice.warningType().name;
-
-                var choices = this.multiplechoice.choices();
-                o.choices = choices.map(function(c){return c.content()});
-                var matrix = [];
-                var distractors = [];
-                for(var i=0;i<choices.length;i++)
-                {
-                    matrix.push(choices[i].marks());
-                    distractors.push(choices[i].distractor());
-                }
-
-				if(this.multiplechoice.customMarking())
-					o.matrix = this.multiplechoice.customMatrix();
-				else
-					o.matrix = matrix;
-
-                o.distractors = distractors;
-                break;
-            }
+			try{
+				this.type().toJSON(o);
+			}catch(e) {
+				console.log(e);
+				console.log(e.stack);
+				throw(e);
+			}
             return o;
         },
 
@@ -2163,67 +1840,676 @@ $(document).ready(function() {
 				}
 			}
 
-            switch(this.type().name)
-            {
-            case 'gapfill':
+			try{
+				this.type().load(data);
+			}catch(e){
+				console.log(e);
+				console.log(e.stack);
+				throw(e);
+			}
+        }
+    };
+
+	function PartType(part,data) {
+		this.name = data.name;
+		this.part = part;
+		this.niceName = data.niceName;
+		this.has_marks = data.has_marks || false;
+		this.tabs = data.tabs || [];
+		this.model = data.model ? data.model(part) : {};
+		this.toJSONFn = data.toJSON || function() {};
+		this.loadFn = data.load || function() {};
+	}
+	PartType.prototype = {
+		toJSON: function(data) {
+			this.toJSONFn.apply(this.model,[data,this.part]);
+		},
+		load: function(data) {
+			this.loadFn.apply(this.model,[data,this.part]);
+		}
+	};
+
+
+	var partTypes = [
+		{
+			name: 'information', 
+			niceName: 'Information only'
+		},
+		{
+			name: 'gapfill', 
+			niceName: 'Gap-fill', 
+			has_marks: true,
+
+			toJSON: function(data,part) {
+				if(part.gaps().length)
+				{
+					data.gaps = part.gaps().map(function(g) {
+						return g.toJSON();
+					});
+				}
+			},
+			load: function(data,part) {
                 if(data.gaps)
                 {
                     data.gaps.map(function(g) {
-                        this.gapfill.gaps.push(new Part(this.q,this,this.gapfill.gaps,g));
-                    },this);
+                        part.gaps.push(new Part(part.q,part,part.gaps,g));
+                    });
                 }
-                break;
-            case 'jme':
-                tryLoad(data,['answer','answerSimplification','checkVariableNames','expectedVariableNames','showPreview'],this.jme);
-                for(var i=0;i<this.jme.checkingTypes.length;i++)
+			}
+		},
+		{
+			name:'jme', 
+			niceName: 'Mathematical expression', 
+			has_marks: true, 
+			tabs: [
+				new Editor.Tab('restrictions','Accuracy and string restrictions')
+			],
+
+			model: function() {
+				var model = {
+					answer: ko.observable(''),
+					answerSimplification: ko.observable(''),
+					showPreview: ko.observable(true),
+					checkingTypes: [
+						{name:'absdiff',niceName:'Absolute difference', accuracy: ko.observable(0.001)},
+						{name:'reldiff',niceName:'Relative difference', accuracy: ko.observable(0.001)},
+						{name:'dp',niceName:'Decimal points', accuracy: ko.observable(3)},
+						{name:'sigfig',niceName:'Significant figures', accuracy: ko.observable(3)}
+					],
+					failureRate: ko.observable(1),
+					vset: {
+						points: ko.observable(5),
+						start: ko.observable(0),
+						end: ko.observable(1)
+					},
+					maxlength: {
+						length: ko.observable(0),
+						partialCredit: ko.observable(0),
+						message: Editor.contentObservable('')
+					},
+					minlength: {
+						length: ko.observable(0),
+						partialCredit: ko.observable(0),
+						message: Editor.contentObservable('')
+					},
+					musthave: {
+						strings: ko.observableArray([]),
+						showStrings: ko.observable(false),
+						partialCredit: ko.observable(0),
+						message: Editor.contentObservable('')
+					},
+					notallowed: {
+						strings: ko.observableArray([]),
+						showStrings: ko.observable(false),
+						partialCredit: ko.observable(0),
+						message: Editor.contentObservable('')
+					},
+					checkVariableNames: ko.observable(false),
+					expectedVariableNames: ko.observableArray([])
+				};
+				model.checkingType = ko.observable(model.checkingTypes[0]);
+
+				return model;
+			},
+
+			toJSON: function(data) {
+                data.answer = this.answer();
+                if(this.answerSimplification())
+                    data.answersimplification = this.answerSimplification();
+				data.showpreview = this.showPreview();
+                data.checkingtype = this.checkingType().name;
+                data.checkingaccuracy = this.checkingType().accuracy();
+                data.vsetrangepoints = this.vset.points();
+                data.vsetrange = [this.vset.start(),this.vset.end()];
+                data.checkvariablenames = this.checkVariableNames();
+				data.expectedvariablenames = this.expectedVariableNames();
+                if(this.maxlength.length())
                 {
-                    if(this.jme.checkingTypes[i].name == data.checkingtype)
-                        this.jme.checkingType(this.jme.checkingTypes[i]);
+                    data.maxlength = {
+                        length: this.maxlength.length(),
+                        partialCredit: this.maxlength.partialCredit(),
+                        message: this.maxlength.message()
+                    };
                 }
-                tryLoad(data,'checkingaccuracy',this.jme.checkingType(),'accuracy');
-				tryLoad(data,'vsetrangepoints',this.jme.vset,'points');
+                if(this.minlength.length())
+                {
+                    data.minlength = {
+                        length: this.minlength.length(),
+                        partialCredit: this.minlength.partialCredit(),
+                        message: this.minlength.message()
+                    };
+                }
+                if(this.musthave.strings().length)
+                {
+                    data.musthave = {
+                        strings: this.musthave.strings(),
+                        showStrings: this.musthave.showStrings(),
+                        partialCredit: this.musthave.partialCredit(),
+                        message: this.musthave.message()
+                    };
+                }
+                if(this.notallowed.strings().length)
+                {
+                    data.notallowed = {
+                        strings: this.notallowed.strings(),
+                        showStrings: this.notallowed.showStrings(),
+                        partialCredit: this.notallowed.partialCredit(),
+                        message: this.notallowed.message()
+                    };
+                }
+			},
+			load: function(data) {
+                tryLoad(data,['answer','answerSimplification','checkVariableNames','expectedVariableNames','showPreview'],this);
+                for(var i=0;i<this.checkingTypes.length;i++)
+                {
+                    if(this.checkingTypes[i].name == data.checkingtype)
+                        this.checkingType(this.checkingTypes[i]);
+                }
+                tryLoad(data,'checkingaccuracy',this.checkingType(),'accuracy');
+				tryLoad(data,'vsetrangepoints',this.vset,'points');
 				if('vsetrange' in data) {
-					this.jme.vset.start(data.vsetrange[0]);
-					this.jme.vset.end(data.vsetrange[1]);
+					this.vset.start(data.vsetrange[0]);
+					this.vset.end(data.vsetrange[1]);
 				}
 
-                tryLoad(data.maxlength,['length','partialCredit','message'],this.jme.maxlength);
-                tryLoad(data.minlength,['length','partialCredit','message'],this.jme.minlength);
-                tryLoad(data.musthave,['strings','showStrings','partialCredit','message'],this.jme.musthave);
-                tryLoad(data.notallowed,['strings','showStrings','partialCredt','message'],this.jme.notallowed);
+                tryLoad(data.maxlength,['length','partialCredit','message'],this.maxlength);
+                tryLoad(data.minlength,['length','partialCredit','message'],this.minlength);
+                tryLoad(data.musthave,['strings','showStrings','partialCredit','message'],this.musthave);
+                tryLoad(data.notallowed,['strings','showStrings','partialCredt','message'],this.notallowed);
+			}
+		},
+		{
+			name:'numberentry', 
+			niceName: 'Number entry', 
+			has_marks: true,
+			tabs: [],
 
-                break;
-            case 'numberentry':
-                tryLoad(data,['minValue','maxValue','integerAnswer','integerPartialCredit','precision','precisionPartialCredit','precisionMessage','precisionType','strictPrecision'],this.numberentry);
-				if('answer' in data) {
-					this.numberentry.minValue(data.answer);
-					this.numberentry.maxValue(data.answer);
-				}
-				for(var i=0;i<this.numberentry.precisionTypes.length;i++) {
-					if(this.numberentry.precisionTypes[i].name == this.numberentry.precisionType())
-						this.numberentry.precisionType(this.numberentry.precisionTypes[i]);
-				}
+			model: function() {
+				var model = {
+					minValue: ko.observable(''),
+					maxValue: ko.observable(''),
+					correctAnswerFraction: ko.observable(false),
+					integerAnswer: ko.observable(false),
+					integerPartialCredit: ko.observable(0),
+					allowFractions: ko.observable(false),
+					precisionTypes: [
+						{name: 'none', niceName: 'None'},
+						{name: 'dp', niceName: 'Decimal places'},
+						{name: 'sigfig', niceName: 'Significant figures'}
+					],
+					precision: ko.observable(0),
+					precisionPartialCredit: ko.observable(0),
+					precisionMessage: ko.observable('You have not given your answer to the correct precision.'),
+					strictPrecision: ko.observable(true)
+				};
+				model.precisionType = ko.observable(model.precisionTypes[0]);
+				model.precisionWord = ko.computed(function() {
+					switch(this.precisionType().name) {
+					case 'dp':
+						return 'Digits';
+					case 'sigfig':
+						return 'Significant figures';
+					}
+				},model);
 
-                break;
-            case 'patternmatch':
-                tryLoad(data,['answer','displayAnswer','caseSensitive','partialCredit'],this.patternmatch);
-                break;
-            case 'm_n_x':
-                tryLoad(data,['minMarks','maxMarks','minAnswers','maxAnswers','shuffleChoices','shuffleAnswers'],this.multiplechoice);
-				if(typeof data.matrix == 'string') {
-					this.multiplechoice.customMarking(true);
-					this.multiplechoice.customMatrix(data.matrix);
-				}
-                for(var i=0;i<this.multiplechoice.warningTypes.length;i++)
+				return model;
+			},
+
+			toJSON: function(data) {
+                data.minValue = this.minValue();
+                data.maxValue = this.maxValue();
+				data.correctAnswerFraction = this.correctAnswerFraction();
+                if(this.integerAnswer())
                 {
-                    if(this.multiplechoice.warningTypes[i].name==data.warningType) {
-                        this.multiplechoice.warningType(this.multiplechoice.warningTypes[i]);
+                    data.integerAnswer = this.integerAnswer();
+                    data.integerPartialCredit= this.integerPartialCredit();
+                }
+				data.allowFractions = this.allowFractions();
+				if(this.precisionType().name!='none') {
+					data.precisionType = this.precisionType().name;
+					data.precision = this.precision();
+					data.precisionPartialCredit = this.precisionPartialCredit();
+					data.precisionMessage = this.precisionMessage();
+					data.strictPrecision = this.strictPrecision();
+				}
+			},
+			load: function(data) {
+                tryLoad(data,['minValue','maxValue','correctAnswerFraction','integerAnswer','integerPartialCredit','allowFractions','precision','precisionPartialCredit','precisionMessage','precisionType','strictPrecision'],this);
+				if('answer' in data) {
+					this.minValue(data.answer);
+					this.maxValue(data.answer);
+				}
+				for(var i=0;i<this.precisionTypes.length;i++) {
+					if(this.precisionTypes[i].name == this.precisionType())
+						this.precisionType(this.precisionTypes[i]);
+				}
+			}
+		},
+		{
+			name: 'matrix',
+			niceName: 'Matrix entry',
+			has_marks: true,
+			tabs: [],
+
+			model: function() {
+				var model = {
+					correctAnswer: ko.observable(''),
+					correctAnswerFractions: ko.observable(false),
+					numRows: ko.observable(1),
+					numColumns: ko.observable(1),
+					allowResize: ko.observable(true),
+					tolerance: ko.observable(0),
+					markPerCell: ko.observable(false),
+					allowFractions: ko.observable(false),
+					precisionTypes: [
+						{name: 'none', niceName: 'None'},
+						{name: 'dp', niceName: 'Decimal places'},
+						{name: 'sigfig', niceName: 'Significant figures'}
+					],
+					precision: ko.observable(0),
+					precisionPartialCredit: ko.observable(0),
+					precisionMessage: ko.observable('You have not given your answer to the correct precision.'),
+					strictPrecision: ko.observable(true)
+				}
+				model.precisionType = ko.observable(model.precisionTypes[0]);
+				model.precisionWord = ko.computed(function() {
+					switch(this.precisionType().name) {
+					case 'dp':
+						return 'Digits';
+					case 'sigfig':
+						return 'Significant figures';
+					}
+				},model);
+
+				return model;
+			},
+
+			toJSON: function(data) {
+				data.correctAnswer = this.correctAnswer();
+				data.correctAnswerFractions = this.correctAnswerFractions();
+				data.numRows = this.numRows();
+				data.numColumns = this.numColumns();
+				data.allowResize = this.allowResize();
+				data.tolerance = this.tolerance();
+				data.markPerCell = this.markPerCell();
+				data.allowFractions = this.allowFractions();
+
+				if(this.precisionType().name!='none') {
+					data.precisionType = this.precisionType().name;
+					data.precision = this.precision();
+					data.precisionPartialCredit = this.precisionPartialCredit();
+					data.precisionMessage = this.precisionMessage();
+					data.strictPrecision = this.strictPrecision();
+				}
+			},
+
+			load: function(data) {
+				tryLoad(data,['correctAnswer','correctAnswerFractions','numRows','numColumns','allowResize','tolerance','markPerCell','allowFractions','precision','precisionPartialCredit','precisionMessage','precisionType','strictPrecision'],this);
+				for(var i=0;i<this.precisionTypes.length;i++) {
+					if(this.precisionTypes[i].name == this.precisionType())
+						this.precisionType(this.precisionTypes[i]);
+				}
+			}
+		},
+		{
+			name:'patternmatch', 
+			niceName: 'Match text pattern', 
+			has_marks: true,
+			tabs: [],
+
+			model: function() {
+				return {
+					answer: ko.observable(''),
+					displayAnswer: Editor.contentObservable(''),
+					caseSensitive: ko.observable(false),
+					partialCredit: ko.observable(0)
+				}
+			},
+
+			toJSON: function(data) {
+                data.answer = this.answer();
+                data.displayAnswer = this.displayAnswer();
+                if(this.caseSensitive())
+                {
+                    data.caseSensitive = this.caseSensitive();
+                    data.partialCredit = this.partialCredit();
+                }
+			},
+			load: function(data) {
+                tryLoad(data,['answer','displayAnswer','caseSensitive','partialCredit'],this);
+			}
+		},
+		{
+			name:'1_n_2', 
+			niceName: 'Choose one from a list',
+			tabs: [
+				new Editor.Tab('marking','Marking'),
+				new Editor.Tab('choices','Choices')
+			],
+
+			model: function(part) {
+				var model = {
+					minMarks: ko.observable(0),
+					maxMarks: ko.observable(0),
+					shuffleChoices: ko.observable(false),
+					displayColumns: ko.observable(0),
+					customMarking: ko.observable(false),
+					customMatrix: ko.observable(''),
+
+					choices: ko.observableArray([])
+				};
+
+				model.addChoice = function() {
+					var c = {
+						content: Editor.contentObservable('Choice '+(model.choices().length+1)),
+						marks: ko.observable(0),
+						distractor: Editor.contentObservable(''),
+						answers: ko.observableArray([])
+					};
+					c.remove = function() {
+						model.removeChoice(c);
+					}
+
+					model.choices.push(c);
+					return c;
+				};
+
+				model.removeChoice = function(choice) {
+					model.choices.remove(choice);
+				};
+
+				return model;
+			},
+
+			toJSON: function(data) {
+                data.minMarks = this.minMarks();
+                data.maxMarks = this.maxMarks();
+                data.shuffleChoices = this.shuffleChoices();
+                data.displayType = 'radiogroup';
+                data.displayColumns = this.displayColumns();
+
+                var choices = this.choices();
+                data.choices = choices.map(function(c){return c.content()});
+                var matrix = [];
+                var distractors = [];
+                for(var i=0;i<choices.length;i++)
+                {
+                    matrix.push(choices[i].marks());
+                    distractors.push(choices[i].distractor());
+                }
+
+				if(this.customMarking()) {
+					data.matrix = this.customMatrix();
+				} else {
+					data.matrix = matrix;
+				}
+
+                data.distractors = distractors;
+			},
+			load: function(data) {
+                tryLoad(data,['minMarks','maxMarks','shuffleChoices','displayColumns'],this);
+				if(typeof data.matrix == 'string') {
+					this.customMarking(true);
+					this.customMatrix(data.matrix);
+				}
+
+                for(var i=0;i<data.choices.length;i++)
+                {
+                    var c = this.addChoice(data.choices[i]);
+                    c.content(data.choices[i] || '');
+					if(!this.customMarking()) {
+	                    c.marks(data.matrix[i] || 0);
+					}
+					if('distractors' in data)
+                    {
+	                    c.distractor(data.distractors[i] || '');
+                    }
+                }
+			}
+		},
+		{
+			name:'m_n_2', 
+			niceName: 'Choose several from a list',
+			tabs: [
+				new Editor.Tab('marking','Marking'),
+				new Editor.Tab('choices','Choices')
+			],
+
+			model: function() {
+				var model = {
+					minMarks: ko.observable(0),
+					maxMarks: ko.observable(0),
+					minAnswers: ko.observable(0),
+					maxAnswers: ko.observable(0),
+					shuffleChoices: ko.observable(false),
+					displayColumns: ko.observable(0),
+					customMarking: ko.observable(false),
+					customMatrix: ko.observable(''),
+					warningType: ko.observable(''),
+
+					warningTypes: [
+						{name: 'none', niceName: 'Do nothing'},
+						{name: 'warn', niceName: 'Warn'},
+						{name: 'prevent', niceName: 'Prevent submission'}
+					],
+
+					choices: ko.observableArray([]),
+				};
+
+				model.addChoice = function() {
+					var c = {
+						content: Editor.contentObservable('Choice '+(model.choices().length+1)),
+						marks: ko.observable(0),
+						distractor: Editor.contentObservable(''),
+						answers: ko.observableArray([])
+					};
+					c.remove = function() {
+						model.removeChoice(c);
+					}
+
+					model.choices.push(c);
+					return c;
+				};
+
+				model.removeChoice = function(choice) {
+					model.choices.remove(choice);
+				};
+
+				return model;
+			},
+
+			toJSON: function(data) {
+                data.minMarks = this.minMarks();
+                data.maxMarks = this.maxMarks();
+                data.shuffleChoices = this.shuffleChoices();
+                data.displayType = 'checkbox';
+                data.displayColumns = this.displayColumns();
+                data.minAnswers = this.minAnswers();
+                data.maxAnswers = this.maxAnswers();
+				data.warningType = this.warningType().name;
+
+                var choices = this.choices();
+                data.choices = choices.map(function(c){return c.content()});
+                var matrix = [];
+                var distractors = [];
+                for(var i=0;i<choices.length;i++)
+                {
+                    matrix.push(choices[i].marks());
+                    distractors.push(choices[i].distractor());
+                }
+
+				if(this.customMarking()) {
+					data.matrix = this.customMatrix();
+				} else {
+					data.matrix = matrix;
+				}
+
+                data.distractors = distractors;
+			},
+			load: function(data) {
+                tryLoad(data,['minMarks','maxMarks','minAnswers','maxAnswers','shuffleChoices','displayColumns'],this);
+				if(typeof data.matrix == 'string') {
+					this.customMarking(true);
+					this.customMatrix(data.matrix);
+				}
+
+                for(var i=0;i<this.warningTypes.length;i++)
+                {
+                    if(this.warningTypes[i].name==data.warningType) {
+                        this.warningType(this.warningTypes[i]);
 					}
                 }
-                for(var i=0;i<this.multiplechoice.displayTypes.m_n_x.length;i++)
+
+                for(var i=0;i<data.choices.length;i++)
                 {
-                    if(this.multiplechoice.displayTypes.m_n_x[i].name==data.displayType)
-                        this.multiplechoice.displayType(this.multiplechoice.displayTypes.m_n_x[i]);
+                    var c = this.addChoice(data.choices[i]);
+                    c.content(data.choices[i] || '');
+					if(!this.customMarking())
+	                    c.marks(data.matrix[i] || 0);
+					if('distractors' in data)
+                    {
+	                    c.distractor(data.distractors[i] || '');
+                    }
+                }
+			}
+		},
+		{
+			name:'m_n_x', 
+			niceName: 'Match choices with answers',
+			tabs: [
+				new Editor.Tab('choices','Marking matrix'),
+				new Editor.Tab('marking','Marking options')
+			],
+
+			model: function() {
+				var model = {
+					minMarks: ko.observable(0),
+					maxMarks: ko.observable(0),
+					minAnswers: ko.observable(0),
+					maxAnswers: ko.observable(0),
+					shuffleChoices: ko.observable(false),
+					shuffleAnswers: ko.observable(false),
+					displayType:ko.observable(''),
+					customMarking: ko.observable(false),
+					customMatrix: ko.observable(''),
+					warningType: ko.observable(''),
+
+					warningTypes: [
+						{name: 'none', niceName: 'Do nothing'},
+						{name: 'warn', niceName: 'Warn'},
+						{name: 'prevent', niceName: 'Prevent submission'}
+					],
+					displayTypes: [
+						{name: 'radiogroup', niceName: 'One from each row'},
+						{name: 'checkbox', niceName: 'Checkboxes'}
+					],
+
+					choices: ko.observableArray([]),
+					answers: ko.observableArray([])
+				};
+
+				model.addChoice = function() {
+					var c = {
+						content: Editor.contentObservable('Choice '+(model.choices().length+1)),
+						marks: ko.observable(0),
+						distractor: Editor.contentObservable(''),
+						answers: ko.observableArray([])
+					};
+					c.remove = function() {
+						model.removeChoice(c);
+					}
+
+					//add a marks observable for each answer
+					for(var i=0;i<model.answers().length;i++)
+					{
+						c.answers.push({
+							marks: ko.observable(0),
+							distractor: ko.observable('')
+						});
+					}
+
+					model.choices.push(c);
+					return c;
+				},
+
+				model.removeChoice = function(choice) {
+					model.choices.remove(choice);
+				};
+
+				model.addAnswer = function() {
+					var a = {
+						content: ko.observable('Answer '+(model.answers().length+1))
+					};
+					a.remove = function() {
+						model.removeAnswer(a);
+					}
+
+					for(var i=0;i<model.choices().length;i++)
+					{
+						model.choices()[i].answers.push({
+							marks: ko.observable(0),
+							distractor: ko.observable('')
+						});
+					}
+					model.answers.push(a);
+					return a;
+				};
+
+				model.removeAnswer = function(answer) {
+					var n = model.answers.indexOf(answer);
+					for(var i=0;i<model.choices().length;i++)
+					{
+						model.choices()[i].answers.splice(n,1);
+					}
+					model.answers.remove(answer);
+				};
+
+				return model;
+			},
+
+			toJSON: function(data) {
+                data.minMarks = this.minMarks();
+                data.maxMarks = this.maxMarks();
+                data.minAnswers = this.minAnswers();
+                data.maxAnswers = this.maxAnswers();
+                data.shuffleChoices = this.shuffleChoices();
+                data.shuffleAnswers = this.shuffleAnswers();
+                data.displayType = this.displayType().name;
+				data.warningType = this.warningType().name;
+
+                var matrix = [];
+                var choices = this.choices();
+                data.choices = choices.map(function(c){return c.content()});
+				for(var i=0;i<choices.length;i++) {
+					matrix.push(choices[i].answers().map(function(a){return a.marks();}));
+				}
+
+				if(this.customMarking()) {
+					data.matrix = this.customMatrix();
+				} else {
+					data.matrix = matrix;
+				}
+
+                var answers = this.answers();
+                data.answers = answers.map(function(a){return a.content()});
+			},
+			load: function(data) {
+                tryLoad(data,['minMarks','maxMarks','minAnswers','maxAnswers','shuffleChoices','shuffleAnswers'],this);
+				if(typeof data.matrix == 'string') {
+					this.customMarking(true);
+					this.customMatrix(data.matrix);
+				}
+                for(var i=0;i<this.warningTypes.length;i++)
+                {
+                    if(this.warningTypes[i].name==data.warningType) {
+                        this.warningType(this.warningTypes[i]);
+					}
+                }
+                for(var i=0;i<this.displayTypes.length;i++)
+                {
+                    if(this.displayTypes[i].name==data.displayType) {
+                        this.displayType(this.displayTypes[i]);
+					}
                 }
 
                 for(var i=0;i<data.answers.length;i++)
@@ -2235,50 +2521,15 @@ $(document).ready(function() {
                 {
                     var c = this.addChoice(data.choices[i]);
                     c.content(data.choices[i]);
-					if(!this.multiplechoice.customMarking()) {
-						for(var j=0;j<data.answers.length;j++)
-							this.multiplechoice.choices()[i].answers()[j].marks(data.matrix[i][j] || 0);
+					if(!this.customMarking()) {
+						for(var j=0;j<data.answers.length;j++) {
+							this.choices()[i].answers()[j].marks(data.matrix[i][j] || 0);
+						}
 					}
                 }
-                break;
-            case '1_n_2':
-            case 'm_n_2':
-                tryLoad(data,['minMarks','maxMarks','minAnswers','maxAnswers','shuffleChoices','displayColumns'],this.multiplechoice);
-				if(typeof data.matrix == 'string') {
-					this.multiplechoice.customMarking(true);
-					this.multiplechoice.customMatrix(data.matrix);
-				}
-
-                for(var i=0;i<this.multiplechoice.warningTypes.length;i++)
-                {
-                    if(this.multiplechoice.warningTypes[i].name==data.warningType) {
-                        this.multiplechoice.warningType(this.multiplechoice.warningTypes[i]);
-					}
-                }
-
-                var displayTypes = this.multiplechoice.displayTypes[this.type().name];
-                for(var i=0;i<displayTypes.length;i++)
-                {
-                    if(displayTypes[i].name==data.displayType)
-                        this.multiplechoice.displayType(displayTypes[i]);
-                }
-
-                for(var i=0;i<data.choices.length;i++)
-                {
-                    var c = this.addChoice(data.choices[i]);
-                    c.content(data.choices[i] || '');
-					if(!this.multiplechoice.customMarking())
-	                    c.marks(data.matrix[i] || 0);
-					if('distractors' in data)
-                    {
-	                    c.distractor(data.distractors[i] || '');
-                    }
-                }
-                break;
-
-            }
-        }
-    };
+			}
+		}
+	];
 
     var deps = ['jme-display','jme-variables','jme','editor-extras'];
 	for(var i=0;i<Editor.numbasExtensions.length;i++) {

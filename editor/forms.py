@@ -38,16 +38,25 @@ class TagField(forms.CharField):
         else:
             return []
 
+USAGE_OPTIONS = (
+    ('any','Any'),
+    ('reuse','Free to reuse'),
+    ('modify','Free to reuse with modification'),
+    ('sell','Free to reuse commercially'),
+    ('modify-sell','Free to reuse commercially with modification'),
+)
+
 class QuestionSearchForm(forms.Form):
     query = forms.CharField(initial='', required=False)
     author = forms.CharField(initial='', required=False)
-    progress = forms.ChoiceField(initial='',choices = [('','Any')]+Question.PROGRESS_CHOICES, required=False)
+    usage = forms.ChoiceField(choices=USAGE_OPTIONS, required=False)
     filter_copies = forms.BooleanField(initial=False)
     tags = TagField(initial='', required=False, widget=forms.TextInput(attrs={'placeholder': 'Tags separated by commas'}))
 
 class QuestionAccessForm(forms.ModelForm):
     class Meta:
         model = QuestionAccess
+        exclude = []
 
 class QuestionSetAccessForm(forms.ModelForm):
     class Meta:
@@ -83,13 +92,10 @@ class QuestionSetAccessForm(forms.ModelForm):
             f.save()
         return super(QuestionSetAccessForm,self).save()
 
-class ExamSearchForm(forms.Form):
-    query = forms.CharField(initial='', required=False)
-    author = forms.CharField(initial='', required=False)
-
 class ExamAccessForm(forms.ModelForm):
     class Meta:
         model = ExamAccess
+        exclude = []
 
 class ExamSetAccessForm(forms.ModelForm):
     class Meta:
@@ -131,7 +137,7 @@ class QuestionForm(forms.ModelForm):
 
     class Meta:
         model = Question
-        exclude = ('name','author','tags','public_access','copy_of')
+        exclude = ('name','author','tags','public_access','copy_of','metadata','licence')
 
 class QuestionHighlightForm(forms.ModelForm):
     note = forms.CharField(widget=forms.Textarea(attrs={'data-bind':'text:note'}), label='Write a note explaining why you\'re highlighting this question.')
@@ -155,7 +161,7 @@ class ExamForm(forms.ModelForm):
     
     class Meta:
         model = Exam
-        exclude = ('name','author','public_access')
+        exclude = ('name','author','public_access','metadata','licence')
         
         
 class NewExamForm(forms.ModelForm):
@@ -174,6 +180,7 @@ class ExamQuestionForm(forms.ModelForm):
     
     class Meta:
         model = ExamQuestion
+        exclude = []
 
 ExamQuestionFormSet = inlineformset_factory(Exam, ExamQuestion, form=ExamQuestionForm)
 
@@ -191,6 +198,7 @@ class ExamSearchForm(forms.Form):
     
     query = forms.CharField(initial='', required=False)
     author = forms.CharField(initial='', required=False)
+    usage = forms.ChoiceField(choices=USAGE_OPTIONS, required=False)
         
 class ValidateZipField:
     def clean_zipfile(self):

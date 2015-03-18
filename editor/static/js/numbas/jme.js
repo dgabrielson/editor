@@ -437,15 +437,23 @@ var jme = Numbas.jme = /** @lends Numbas.jme */ {
 						return {tok: scope.variables[name]};
 				}
 			}
-			else
+			else {
 				return tree;
-		}
-		else
-		{
+			}
+		} else if((tree.tok.type=='function' || tree.tok.type=='op') && tree.tok.name in substituteTreeOps) {
 			tree = {tok: tree.tok,
 					args: tree.args.slice()};
-			for(var i=0;i<tree.args.length;i++)
+			substituteTreeOps[tree.tok.name](tree,scope,allowUnbound);
+			return tree;
+		} else
+		{
+			tree = {
+				tok: tree.tok,
+				args: tree.args.slice()
+			};
+			for(var i=0;i<tree.args.length;i++) {
 				tree.args[i] = jme.substituteTree(tree.args[i],scope,allowUnbound);
+			}
 			return tree;
 		}
 	},
@@ -1430,7 +1438,7 @@ var synonyms = jme.synonyms = {
 /** Operations which evaluate lazily - they don't need to evaluate all of their arguments 
  * @memberof Numbas.jme
  */
-var lazyOps = jme.lazyOps = ['if','switch','repeat','map','isa','satisfy'];
+var lazyOps = jme.lazyOps = ['if','switch','repeat','map','let','isa','satisfy'];
 
 var rightAssociative = {
 	'^': true,
@@ -1653,6 +1661,8 @@ newBuiltin('*', [TNum,TMatrix], TMatrix, matrixmath.scalarmul, {doc: {usage: '3*
 newBuiltin('*', [TMatrix,TNum], TMatrix, function(a,b){ return matrixmath.scalarmul(b,a); }, {doc: {usage: 'matrix([1,0],[1,2]) * 3', description: 'Multiply a matrix on the right by a scalar.', tags: ['multiplication','composition','compose','times']}} );
 newBuiltin('*', [TMatrix,TMatrix], TMatrix, matrixmath.mul, {doc: {usage: 'matrix([1,0],[1,1]) * matrix([2,3],[3,4])', description: 'Multiply two matrices.', tags: ['multiplication','composition','compose','times']}});
 newBuiltin('/', [TNum,TNum], TNum, math.div, {doc: {usage: ['x/y','3/2'], description: 'Divide two numbers.', tags: ['division','quotient','fraction']}} );
+newBuiltin('/', [TMatrix,TNum], TMatrix, function(a,b){ return matrixmath.scalardiv(a,b); }, {doc: {usage: 'matrix([1,0],[1,2]) * 3', description: 'Multiply a matrix on the right by a scalar.', tags: ['multiplication','composition','compose','times']}} );
+newBuiltin('/', [TVector,TNum], TVector, function(a,b){return vectormath.div(a,b)}, {doc: {usage: 'vector(1,2,3) * 3', description: 'Multiply a vector on the right by a scalar.', tags: ['multiplication','composition','compose','times']}});
 newBuiltin('^', [TNum,TNum], TNum, math.pow, {doc: {usage: ['x^y','x^2','2^x','e^x'], description: 'Exponentiation.', tags: ['power','exponentiate','raise']}} );
 
 newBuiltin('dot',[TVector,TVector],TNum,vectormath.dot, {doc: {usage: 'dot( vector(1,2,3), vector(2,3,4) )', description: 'Dot product of two vectors', tags: ['projection','project']}});
@@ -1683,6 +1693,11 @@ newBuiltin('in',[TNum,TRange],TBool,function(x,r) {
 	}
 	var steps = Math.floor((x-start)/step);
 	return step*steps+start==x && steps <= max_steps;
+});
+
+newBuiltin('list',[TRange],TList,function(range) {
+	var numbers = range.slice(3).map(function(n){ return new TNum(n); });
+	return numbers;
 });
 
 newBuiltin('html',[TString],THTML,function(html) { return $(html) }, {doc: {usage: ['html(\'<div>things</div>\')'], description: 'Parse HTML from a string', tags: ['element','node']}});
@@ -1917,8 +1932,12 @@ newBuiltin( 'random',[],'?', null, {
 newBuiltin('mod', [TNum,TNum], TNum, math.mod, {doc: {usage: 'mod(a,b)', description: 'Modulus, i.e. $a \\bmod{b}.$', tags: ['remainder','modulo']}} );
 newBuiltin('max', [TNum,TNum], TNum, math.max, {doc: {usage: 'max(x,y)', description: 'Maximum of two numbers.', tags: ['supremum','biggest','largest','greatest']}} );
 newBuiltin('min', [TNum,TNum], TNum, math.min, {doc: {usage: 'min(x,y)', description: 'Minimum of two numbers.', tags: ['smallest','least']}} );
+newBuiltin('max', [TList], TNum, math.listmax, {unwrapValues: true});
+newBuiltin('min', [TList], TNum, math.listmin, {unwrapValues: true});
 newBuiltin('precround', [TNum,TNum], TNum, math.precround, {doc: {usage: 'precround(x,3)', description: 'Round to given number of decimal places.', tags: ['dp']}} );
+newBuiltin('precround', [TMatrix,TNum], TMatrix, matrixmath.precround, {doc: {usage: 'precround(x,3)', description: 'Round to given number of decimal places.', tags: ['dp']}} );
 newBuiltin('siground', [TNum,TNum], TNum, math.siground, {doc: {usage: 'siground(x,3)', description: 'Round to given number of significant figures.', tags: ['sig figs','sigfig']}} );
+newBuiltin('siground', [TMatrix,TNum], TMatrix, matrixmath.siground, {doc: {usage: 'precround(x,3)', description: 'Round to given number of decimal places.', tags: ['dp']}} );
 newBuiltin('dpformat', [TNum,TNum], TString, function(n,p) {return math.niceNumber(n,{precisionType: 'dp', precision:p});}, {doc: {usage: 'dpformat(x,3)', description: 'Round to given number of decimal points and pad with zeroes if necessary.', tags: ['dp','decimal points','format','display','precision']}} );
 newBuiltin('sigformat', [TNum,TNum], TString, function(n,p) {return math.niceNumber(n,{precisionType: 'sigfig', precision:p});}, {doc: {usage: 'dpformat(x,3)', description: 'Round to given number of significant figures and pad with zeroes if necessary.', tags: ['sig figs','sigfig','format','display','precision']}} );
 newBuiltin('perm', [TNum,TNum], TNum, math.permutations, {doc: {usage: 'perm(6,3)', description: 'Count permutations. $^n \\kern-2pt P_r$.', tags: ['combinatorics']}} );
@@ -2159,16 +2178,14 @@ newBuiltin('satisfy', [TList,TList,TList,TNum], TList, null, {
 newBuiltin('listval',[TList,TNum],'?', null, {
 	evaluate: function(args,scope)
 	{
-		var index = args[1].value;
 		var list = args[0];
+		var index = util.wrapListIndex(args[1].value,list.vars);
 		if(list.type!='list') {
 			if(list.type=='name')
 				throw(new Numbas.Error('jme.variables.variable not defined',list.name));
 			else
 				throw(new Numbas.Error('jme.func.listval.not a list'));
 		}
-		if(index<0)
-			index += list.vars;
 		if(index in list.value)
 			return list.value[index];
 		else
@@ -2187,13 +2204,9 @@ newBuiltin('listval',[TList,TRange],TList, null, {
 	{
 		var range = args[1].value;
 		var list = args[0];
-		var start = range[0];
-		var end = range[1];
 		var size = list.vars;
-		if(start<0)
-			start += size;
-		if(end<0)
-			end += size;
+		var start = util.wrapListIndex(range[0],size);
+		var end = util.wrapListIndex(range[1]),size;
 		var value = list.value.slice(start,end);
 		return new TList(value);
 	},
@@ -2208,9 +2221,9 @@ newBuiltin('listval',[TList,TRange],TList, null, {
 newBuiltin('listval',[TVector,TNum],TNum, null, {
 	evaluate: function(args,scope)
 	{
-		var index = args[1].value;
-		var vector = args[0];
-		return new TNum(vector.value[index] || 0);
+		var vector = args[0].value;
+		var index = util.wrapListIndex(args[1].value,vector.length);
+		return new TNum(vector[index] || 0);
 	},
 
 	doc: {
@@ -2220,18 +2233,45 @@ newBuiltin('listval',[TVector,TNum],TNum, null, {
 	}
 });
 
+newBuiltin('listval',[TVector,TRange],TVector,null, {
+	evaluate: function(args,scope)
+	{
+		var range = args[1].value;
+		var vector = args[0].value;
+		var start = util.wrapListIndex(range[0],vector.length);
+		var end = util.wrapListIndex(range[1],vector.length);
+		var v = [];
+		for(var i=start;i<end;i++) {
+			v.push(vector[i] || 0);
+		}
+		return new TVector(v);
+	}
+});
+
 newBuiltin('listval',[TMatrix,TNum],TVector, null, {
 	evaluate: function(args,scope)
 	{
-		var index = args[1].value;
-		var matrix = args[0];
-		return new TVector(matrix.value[index] || []);
+		var matrix = args[0].value;
+		var index = util.wrapListIndex(args[1].value,matrix.length);
+		return new TVector(matrix[index] || []);
 	},
 
 	doc: {
 		usage: ['mat[1]','matrix([1,0],[0,1])[1]'],
 		description: 'Return a particular row of a matrix.',
 		tags: ['index','item','access','element','cell']
+	}
+});
+
+newBuiltin('listval',[TMatrix,TRange],TMatrix,null, {
+	evaluate: function(args,scope)
+	{
+		var range = args[1].value;
+		var matrix = args[0].value;
+		var start = util.wrapListIndex(range[0],matrix.length);
+		var end = util.wrapListIndex(range[1],matrix.length);
+		var v = [];
+		return new TMatrix(matrix.slice(start,end));
 	}
 });
 
@@ -2318,6 +2358,34 @@ newBuiltin('map',['?',TList,'?'],TList,null, {
 	}
 });
 
+newBuiltin('let',['?'],TList, null, {
+	evaluate: function(args,scope)
+	{
+		var lambda = args[args.length-1];
+
+		var variables = {};
+		for(var i=0;i<args.length-1;i+=2) {
+			var name = args[i].tok.name;
+			var value = scope.evaluate(args[i+1]);
+			variables[name] = value;
+		}
+		var nscope = new Scope([scope,{variables:variables}]);
+
+		return nscope.evaluate(lambda);
+	},
+
+	typecheck: function(variables) {
+		if(variables.length<3 || (variables.length%2)!=1) {
+			return false;
+		}
+		for(var i=0;i<variables.length-1;i+=2) {
+			if(variables[i].tok.type!='name') {
+				return false;
+			}
+		}
+	}
+});
+
 newBuiltin('sort',[TList],TList, null, {
 	evaluate: function(args,scope)
 	{
@@ -2380,6 +2448,22 @@ newBuiltin('product',['?'],TList,function() {
 	var lists = Array.prototype.slice.call(arguments);
 	var prod = util.product(lists);
 	return prod.map(function(l){ return new TList(l); });
+}, {
+	typecheck: function(variables) {
+		for(var i=0;i<variables.length;i++) {
+			var t = variables[i].type;
+			if(!(t=='list' || t=='set')) {
+				return false;
+			}
+		}
+		return true;
+	}
+});
+
+newBuiltin('zip',['?'],TList,function() {
+	var lists = Array.prototype.slice.call(arguments);
+	var zipped = util.zip(lists);
+	return zipped.map(function(l){ return new TList(l); });
 }, {
 	typecheck: function(variables) {
 		for(var i=0;i<variables.length;i++) {
@@ -2465,6 +2549,10 @@ newBuiltin('matrix',[TList],TMatrix,null, {
 			value = [list.value.map(function(e){return e.value})];
 			rows = 1;
 			columns = list.vars;
+			break;
+		case 'vector':
+			value = list.value.map(function(v){return v.value});
+			columns = list.value[0].value.length;
 			break;
 		case 'list':
 			for(var i=0;i<rows;i++)
@@ -2707,6 +2795,26 @@ var checkingFunctions =
 	}
 };
 
+/** Custom substituteTree behaviour for specific functions - for a given usage of a function, substitute in variable values from the scope.
+ *
+ * Functions have the signature <tree with function call at the top, scope, allowUnbound>
+ *
+ * @memberof Numbas.jme
+ * @enum {function}
+ * @see Numbas.jme.substituteTree
+ */
+var substituteTreeOps = jme.substituteTreeOps = {
+	'map': function(tree,scope,allowUnbound) {
+		tree.args[2] = jme.substituteTree(tree.args[2],scope,allowUnbound);
+		return tree;
+	},
+	'let': function(tree,scope,allowUnbound) {
+		for(var i=1;i<tree.args.length-1;i+=2) {
+			tree.args[i] = jme.substituteTree(tree.args[i],scope,allowUnbound);
+		}
+	}
+};
+
 /** Custom findvars behaviour for specific functions - for a given usage of a function, work out which variables it depends on.
  * 
  * Functions have the signature <tree with function call at top, list of bound variable names, scope>.
@@ -2720,9 +2828,34 @@ var checkingFunctions =
 var findvarsOps = jme.findvarsOps = {
 	'map': function(tree,boundvars,scope) {
 		boundvars = boundvars.slice();
-		boundvars.push(tree.args[1].tok.name.toLowerCase());
+		if(tree.args[1].tok.type=='list') {
+			var names = tree.args[1].args;
+			for(var i=0;i<names.length;i++) {
+				boundvars.push(names[i].tok.name.toLowerCase());
+			}
+		} else {
+			boundvars.push(tree.args[1].tok.name.toLowerCase());
+		}
 		var vars = findvars(tree.args[0],boundvars,scope);
 		vars = vars.merge(findvars(tree.args[2],boundvars));
+		return vars;
+	},
+	'let': function(tree,boundvars,scope) {
+		// find vars used in variable assignments
+		var vars = [];
+		for(var i=0;i<tree.args.length-1;i+=2) {
+			vars = vars.merge(findvars(tree.args[i+1],boundvars,scope));
+		}
+
+		// find variable names assigned by let
+		boundvars = boundvars.slice();
+		for(var i=0;i<tree.args.length-1;i+=2) {
+			boundvars.push(tree.args[i].tok.name.toLowerCase());
+		}
+
+		// find variables used in the lambda expression, excluding the ones assigned by let
+		vars = vars.merge(findvars(tree.args[tree.args.length-1],boundvars,scope));
+
 		return vars;
 	},
 	'satisfy': function(tree,boundvars,scope) {
