@@ -1,28 +1,4 @@
-﻿.nothing-here {
-	font-style: italic;
-}
-
-#name-header {
-    padding: 0;
-    min-height: 1.2em;
-    font-size: 2em;
-    margin-top: 0;
-}
-
-#admin {
-	margin-top: 5px;
-	margin-bottom: 15px;
-	font-size: 24px;
-    list-style: none;
-    margin: 0;
-	line-height: 1.5em;
-}
-#admin li {
-    display: inline-block;
-    margin-right: 2em;
-}
-
-#question-name {
+﻿#question-name {
 	font-size: 2em;
 	height: 1.5em;
 }
@@ -292,6 +268,13 @@ input.recalculate-checkbox {
 	font-weight: bold;
 }
 
+.variable-selector .name-error {
+	text-decoration: underline;
+	color: red;
+	font-style: italic;
+	font-weight: bold;
+}
+
 .variable-selector.noname .name {
     font-family: inherit;
     font-weight: bold;
@@ -311,9 +294,10 @@ input.recalculate-checkbox {
 	overflow-x: hidden;
 }
 
-.variable-selector .value.error {
+.variable-selector.error .value {
 	color: red;
 	font-weight: bold;
+	max-height: none;
 }
 
 .variable {
@@ -334,6 +318,10 @@ input.recalculate-checkbox {
 .variable .name-error {
 	color: red;
 	font-style: italic;
+}
+
+.variable .value-error {
+	margin-top: 1em;
 }
 
 .variable .inline-names {
